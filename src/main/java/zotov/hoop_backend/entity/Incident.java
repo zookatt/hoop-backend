@@ -25,11 +25,9 @@ public class Incident {
     private String roomNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Department department;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Priority priority;
 
     @Enumerated(EnumType.STRING)
@@ -57,17 +55,14 @@ public class Incident {
             String title,
             String description,
             String roomNumber,
-            Department department,
-            Priority priority,
-            IncidentStatus status,
             User createdBy) {
         this.title = title;
         this.description = description;
         this.roomNumber = roomNumber;
-        this.department = department;
-        this.priority = priority;
-        this.status = status;
         this.createdBy = createdBy;
+
+        this.status = IncidentStatus.OPEN;
+
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
