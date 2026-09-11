@@ -1,11 +1,15 @@
 package zotov.hoop_backend.service;
 
+import zotov.hoop_backend.enums.Department;
+import zotov.hoop_backend.enums.Priority;
+
 import org.springframework.stereotype.Service;
 import zotov.hoop_backend.entity.Incident;
 import zotov.hoop_backend.repository.IncidentRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
 public class IncidentService {
@@ -25,6 +29,20 @@ public class IncidentService {
     }
 
     public Incident save(Incident incident) {
+        return incidentRepository.save(incident);
+    }
+
+    public Incident setPriority(Incident incident, Priority priority) {
+        incident.setPriority(priority);
+        incident.setUpdatedAt(LocalDateTime.now());
+
+        return incidentRepository.save(incident);
+    }
+
+    public Incident setDepartment(Incident incident, Department department) {
+        incident.setDepartment(department);
+        incident.setUpdatedAt(LocalDateTime.now());
+
         return incidentRepository.save(incident);
     }
 }
