@@ -84,4 +84,18 @@ public class IncidentService {
         incident.setUpdatedAt(LocalDateTime.now());
         return incidentRepository.save(incident);
     }
+
+    public Incident closeWithoutAssignment(Incident incident) {
+        if (incident.getAssignedTo() != null) {
+            throw new IllegalStateException("Only unassigned incidents can be closed with this action");
+        }
+
+        if (incident.getStatus() != IncidentStatus.OPEN) {
+            throw new IllegalStateException("Only OPEN incidents can be closed without assignment");
+        }
+
+        incident.setStatus(IncidentStatus.CLOSED);
+        incident.setUpdatedAt(LocalDateTime.now());
+        return incidentRepository.save(incident);
+    }
 }
