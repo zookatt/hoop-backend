@@ -1,6 +1,6 @@
 package zotov.hoop_backend.dto.incident;
 
-public record UpdateIncidentRequest(
+public record UpdateIncidentDTORequest(
         String title,
         String description,
         String roomNumber) {
