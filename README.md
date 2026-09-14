@@ -82,12 +82,23 @@ MySQL
 
 Actualmente el proyecto cuenta con las entidades JPA, los DTOs, los servicios y los repositories de Spring Data JPA.
 
+## Diagramas
+
+### Diagrama de clases
+
+![Diagrama de clases de HOOP](docs/diagrams/HOOP%20-%20Class%20Diagram.png)
+
+### Diagrama de base de datos
+
+![Diagrama de base de datos de HOOP](docs/diagrams/HOOP%20-%20Database%20Diagram.png)
+
 ## Documentación
 
 La documentación técnica del backend se encuentra en la carpeta `docs`:
 
-- [Configuración y ejecución](docs/SETUP.md)
-- [Modelo de base de datos](docs/DATABASE.md)
+- [Configuración y ejecución](docs/setup_instructions.md)
+- [Modelo de base de datos](docs/database_model.md)
+- [DTOs](docs/dto.md)
 
 ## Estado del proyecto
 
