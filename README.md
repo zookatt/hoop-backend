@@ -12,6 +12,7 @@ HOOP permite registrar, valorar, asignar y gestionar incidencias, facilitando la
 - MySQL 8
 - Docker
 - Docker Compose
+- SpringDoc OpenAPI
 
 ## Dependencias
 
@@ -44,6 +45,15 @@ Permite establecer la conexión entre Spring Boot y la base de datos MySQL.
 
 Permite validar los datos recibidos por la API antes de procesarlos, por ejemplo campos obligatorios o formatos de email.
 
+### SpringDoc OpenAPI
+
+Permite generar automáticamente la documentación de la API REST en formato OpenAPI y consultar los endpoints desde Swagger UI.
+
+Cuando la aplicación esté arrancada, la documentación se podrá consultar en:
+
+- `http://localhost:8080/swagger-ui.html`
+- `http://localhost:8080/v3/api-docs`
+
 ### Spring Boot DevTools
 
 Facilita el desarrollo proporcionando herramientas como el reinicio automático de la aplicación cuando se realizan cambios en el código.
@@ -70,7 +80,7 @@ Repository
 MySQL
 ```
 
-Actualmente el proyecto cuenta con las entidades JPA y los repositories de Spring Data JPA.
+Actualmente el proyecto cuenta con las entidades JPA, los DTOs, los servicios y los repositories de Spring Data JPA.
 
 ## Documentación
 
@@ -91,5 +101,7 @@ Actualmente se ha implementado:
 - relaciones entre entidades
 - enums de incidencias
 - repositories con Spring Data JPA
+- servicios
+- DTOs de autenticación, usuarios e incidencias
 
-Los siguientes pasos incluyen la implementación de servicios, DTOs, controladores REST, seguridad y tests.
+Los siguientes pasos incluyen la implementación de controladores REST, seguridad y tests.
