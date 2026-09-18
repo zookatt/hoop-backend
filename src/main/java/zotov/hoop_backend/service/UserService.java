@@ -1,35 +1,23 @@
 package zotov.hoop_backend.service;
 
-import org.springframework.stereotype.Service;
+import zotov.hoop_backend.dto.user.CreateUserDTORequest;
+import zotov.hoop_backend.dto.user.UserDTOResponse;
 import zotov.hoop_backend.entity.User;
-import zotov.hoop_backend.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Service
-public class UserService {
+public interface UserService {
 
-    private final UserRepository userRepository;
+    List<User> findAll();
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    List<UserDTOResponse> findAllResponses();
 
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
+    Optional<User> findById(Integer id);
 
-    public Optional<User> findById(Integer id) {
-        return userRepository.findById(id);
-    }
+    User save(User user);
 
-    public User save(User user) {
-        return userRepository.save(user);
-    }
+    UserDTOResponse create(CreateUserDTORequest request);
 
-    public User deactivate(User user) {
-        user.setActive(false);
-        return userRepository.save(user);
-    }
+    User deactivate(User user);
 }
