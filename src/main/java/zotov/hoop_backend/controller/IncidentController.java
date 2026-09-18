@@ -18,7 +18,6 @@ import zotov.hoop_backend.dto.incident.UpdateIncidentDTORequest;
 import zotov.hoop_backend.dto.incident.UpdateIncidentStatusDTORequest;
 import zotov.hoop_backend.entity.Incident;
 import zotov.hoop_backend.entity.User;
-import zotov.hoop_backend.enums.IncidentStatus;
 import zotov.hoop_backend.service.IncidentService;
 import zotov.hoop_backend.service.UserService;
 
