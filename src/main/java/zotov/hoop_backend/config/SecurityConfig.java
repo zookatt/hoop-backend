@@ -23,7 +23,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -47,14 +47,19 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> {
             auth
                     .requestMatchers("/images/**", "/error").permitAll()
-                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, apiEndpoint + "/incidents", apiEndpoint + "/incidents/*").permitAll();
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs",
+                            "/api-docs/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, apiEndpoint + "/incidents", apiEndpoint + "/incidents/*")
+                    .permitAll();
 
             if (local) {
                 auth
                         .requestMatchers(HttpMethod.POST, apiEndpoint + "/incidents").permitAll()
-                        .requestMatchers(HttpMethod.GET, apiEndpoint + "/users", apiEndpoint + "/user-roles").permitAll()
-                        .requestMatchers(HttpMethod.POST, apiEndpoint + "/users", apiEndpoint + "/user-roles").permitAll()
+                        .requestMatchers(HttpMethod.GET, apiEndpoint + "/users", apiEndpoint + "/user-roles")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, apiEndpoint + "/users", apiEndpoint + "/user-roles")
+                        .permitAll()
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 apiEndpoint + "/incidents/*",
@@ -62,17 +67,16 @@ public class SecurityConfig {
                                 apiEndpoint + "/incidents/*/status")
                         .permitAll();
             }
-          
+
             auth.anyRequest().authenticated();
         });
 
         if (local) {
-            http.csrf(csrf -> csrf.ignoringRequestMatchers(request ->
-                    request.getServletPath().startsWith(apiEndpoint + "/incidents")
+            http.csrf(csrf -> csrf
+                    .ignoringRequestMatchers(request -> request.getServletPath().startsWith(apiEndpoint + "/incidents")
                             || request.getServletPath().startsWith(apiEndpoint + "/users")
                             || request.getServletPath().startsWith(apiEndpoint + "/user-roles")));
         }
         return http.build();
     }
 }
-
