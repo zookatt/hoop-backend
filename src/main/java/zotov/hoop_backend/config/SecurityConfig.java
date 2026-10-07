@@ -106,12 +106,6 @@ public class SecurityConfig {
             auth.anyRequest().authenticated();
         });
 
-        if (local) {
-            http.csrf(csrf -> csrf
-                    .ignoringRequestMatchers(request -> request.getServletPath().startsWith(apiEndpoint + "/incidents")
-                            || request.getServletPath().startsWith(apiEndpoint + "/users")
-                            || request.getServletPath().startsWith(apiEndpoint + "/user-roles")));
-        }
         return http.build();
     }
 }
