@@ -78,7 +78,6 @@ public class SecurityConfig {
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        boolean local = environment.acceptsProfiles(Profiles.of("local"));
         http.authorizeHttpRequests(auth -> {
             auth
                     .requestMatchers("/images/**", "/error").permitAll()
@@ -90,18 +89,15 @@ public class SecurityConfig {
                     .requestMatchers(apiEndpoint + "/user-roles", apiEndpoint + "/user-roles/**")
                     .hasAuthority("SCOPE_ADMIN")
                     .requestMatchers(HttpMethod.GET, apiEndpoint + "/incidents", apiEndpoint + "/incidents/*")
-                    .authenticated();
-
-            if (local) {
-                auth
-                        .requestMatchers(HttpMethod.POST, apiEndpoint + "/incidents").permitAll()
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                apiEndpoint + "/incidents/*",
-                                apiEndpoint + "/incidents/*/assignment",
-                                apiEndpoint + "/incidents/*/status")
-                        .permitAll();
-            }
+                    .authenticated()
+                    .requestMatchers(HttpMethod.POST, apiEndpoint + "/incidents")
+                    .hasAnyAuthority("SCOPE_ADMIN", "SCOPE_RECEPTION", "SCOPE_MAINTENANCE", "SCOPE_CLEANING")
+                    .requestMatchers(HttpMethod.PUT, apiEndpoint + "/incidents/*/assignment")
+                    .hasAnyAuthority("SCOPE_ADMIN", "SCOPE_RECEPTION")
+                    .requestMatchers(HttpMethod.PUT, apiEndpoint + "/incidents/*")
+                    .hasAnyAuthority("SCOPE_ADMIN", "SCOPE_RECEPTION")
+                    .requestMatchers(HttpMethod.PUT, apiEndpoint + "/incidents/*/status")
+                    .hasAnyAuthority("SCOPE_ADMIN", "SCOPE_RECEPTION", "SCOPE_MAINTENANCE", "SCOPE_CLEANING");
 
             auth.anyRequest().authenticated();
         });
