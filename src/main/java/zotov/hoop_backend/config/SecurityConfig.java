@@ -85,16 +85,16 @@ public class SecurityConfig {
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs",
                             "/api-docs/**")
                     .permitAll()
+                    .requestMatchers(apiEndpoint + "/users", apiEndpoint + "/users/**")
+                    .hasAuthority("SCOPE_ADMIN")
+                    .requestMatchers(apiEndpoint + "/user-roles", apiEndpoint + "/user-roles/**")
+                    .hasAuthority("SCOPE_ADMIN")
                     .requestMatchers(HttpMethod.GET, apiEndpoint + "/incidents", apiEndpoint + "/incidents/*")
-                    .permitAll();
+                    .authenticated();
 
             if (local) {
                 auth
                         .requestMatchers(HttpMethod.POST, apiEndpoint + "/incidents").permitAll()
-                        .requestMatchers(HttpMethod.GET, apiEndpoint + "/users", apiEndpoint + "/user-roles")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.POST, apiEndpoint + "/users", apiEndpoint + "/user-roles")
-                        .permitAll()
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 apiEndpoint + "/incidents/*",
