@@ -58,6 +58,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return userCredentialsRepository.findByEmail(email)
+                .map(UserCredentials::getUser);
+    }
+
+    @Override
     public User save(User user) {
         return userRepository.save(user);
     }

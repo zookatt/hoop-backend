@@ -15,6 +15,8 @@ public interface UserService {
 
     Optional<User> findById(Integer id);
 
+    Optional<User> findByEmail(String email);
+
     User save(User user);
 
     UserDTOResponse create(CreateUserDTORequest request);
