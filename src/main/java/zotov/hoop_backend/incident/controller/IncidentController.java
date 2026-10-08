@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import zotov.hoop_backend.incident.dto.AssignIncidentDTORequest;
@@ -18,6 +17,7 @@ import zotov.hoop_backend.incident.dto.IncidentDTOResponse;
 import zotov.hoop_backend.incident.dto.UpdateIncidentDTORequest;
 import zotov.hoop_backend.incident.dto.UpdateIncidentStatusDTORequest;
 import zotov.hoop_backend.incident.entity.Incident;
+import zotov.hoop_backend.incident.enums.IncidentStatus;
 import zotov.hoop_backend.user.entity.User;
 import zotov.hoop_backend.incident.service.IncidentService;
 import zotov.hoop_backend.user.service.UserService;
@@ -77,7 +77,7 @@ public class IncidentController {
     @PutMapping("/{id}")
     public IncidentDTOResponse update(
             @PathVariable Integer id,
-            @RequestBody UpdateIncidentDTORequest request) {
+            @RequestBody UpdateIncidentDTORequest request, Authentication authentication) {
         Incident incident = findIncidentOrFail(id);
 
         if (request.title() != null) {
@@ -120,11 +120,23 @@ public class IncidentController {
     @PutMapping("/{id}/status")
     public IncidentDTOResponse updateStatus(
             @PathVariable Integer id,
-            @RequestBody UpdateIncidentStatusDTORequest request) {
+            @RequestBody UpdateIncidentStatusDTORequest request,
+            Authentication authentication) {
         Incident incident = findIncidentOrFail(id);
 
         if (request.status() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The incident status is required");
+        }
+
+        boolean canCloseIncident = authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("SCOPE_ADMIN")
+                        || authority.getAuthority().equals("SCOPE_RECEPTION"));
+
+        if (request.status() == IncidentStatus.CLOSED && !canCloseIncident) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Only ADMIN or RECEPTION can close incidents");
         }
 
         try {
