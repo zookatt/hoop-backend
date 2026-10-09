@@ -1,11 +1,11 @@
 # DTOs - HOOP Backend
 
-Usar este documento para revisar que datos entran y salen de la API.
+Este documento resume que datos entran y salen de la API.
 
-Los DTOs sirven para no exponer directamente las entidades de la base de datos. La idea es:
+Los DTOs evitan exponer directamente las entidades de la base de datos:
 
 ```text
-Frontend
+Frontend/Postman
    |
    | DTO Request
    v
@@ -13,34 +13,51 @@ Backend
    |
    | DTO Response
    v
-Frontend
+Frontend/Postman
 ```
 
-Un DTO `Request` recoge los datos que llegan desde Postman o desde el frontend.
+## Auth
 
-Un DTO `Response` recoge los datos que devuelve el backend.
+El endpoint actual de autenticacion es:
+
+```text
+POST /api/v1/auth/token
+```
+
+No usa DTO JSON. Usa **Basic Auth** con:
+
+```text
+email
+password
+```
+
+La respuesta es un JWT en texto plano:
+
+```text
+eyJhbGciOiJIUzUxMiJ9...
+```
+
+Ese token se usa despues con:
+
+```text
+Authorization: Bearer <token>
+```
+
+Los records `LoginDTORequest` y `LoginDTOResponse` existen en el proyecto, pero no forman parte del flujo activo actual.
 
 ## Incident DTOs
 
 | DTO | Tipo | Datos |
 | --- | --- | --- |
-| `CreateIncidentDTORequest` | Request | title, description, roomNumber |
-| `UpdateIncidentDTORequest` | Request | title, description, roomNumber |
-| `AssignIncidentDTORequest` | Request | department, priority, assignedToUserId |
-| `UpdateIncidentStatusDTORequest` | Request | status |
+| `CreateIncidentDTORequest` | Request | `title`, `description`, `roomNumber` |
+| `UpdateIncidentDTORequest` | Request | `title`, `description`, `roomNumber` |
+| `AssignIncidentDTORequest` | Request | `department`, `priority`, `assignedToUserId` |
+| `UpdateIncidentStatusDTORequest` | Request | `status` |
 | `IncidentDTOResponse` | Response | datos completos de la incidencia |
 
 ### CreateIncidentDTORequest
 
-Introducir estos datos para crear una incidencia:
-
-```text
-title
-description
-roomNumber
-```
-
-Ejemplo:
+Body para crear una incidencia:
 
 ```json
 {
@@ -50,33 +67,20 @@ Ejemplo:
 }
 ```
 
-El backend establece:
+El backend establece automaticamente:
 
 ```text
 status = OPEN
+createdBy = usuario logueado
 createdAt
 updatedAt
 ```
 
-Ahora mismo, en esta rama, el usuario creador se indica temporalmente con `createdByUserId` en la URL:
-
-```text
-POST /api/v1/incidents?createdByUserId=1
-```
-
-Mas adelante, cuando la autenticacion este terminada, `createdBy` deberia salir del usuario logueado.
+No se envia `createdByUserId` en la URL ni en el body.
 
 ### UpdateIncidentDTORequest
 
-Introducir los datos que se quieran modificar:
-
-```text
-title
-description
-roomNumber
-```
-
-Ejemplo:
+Body para modificar datos basicos:
 
 ```json
 {
@@ -86,49 +90,52 @@ Ejemplo:
 }
 ```
 
+Se pueden enviar solo los campos que se quieran cambiar.
+
 ### AssignIncidentDTORequest
 
-Introducir los datos para valorar y asignar una incidencia:
-
-```text
-department
-priority
-assignedToUserId
-```
-
-Ejemplo:
+Body para valorar y asignar una incidencia:
 
 ```json
 {
   "department": "MAINTENANCE",
   "priority": "HIGH",
-  "assignedToUserId": 1
+  "assignedToUserId": 2
 }
+```
+
+Valores posibles de `department`:
+
+```text
+MAINTENANCE
+CLEANING
+```
+
+Valores posibles de `priority`:
+
+```text
+LOW
+MEDIUM
+HIGH
 ```
 
 ### UpdateIncidentStatusDTORequest
 
-Introducir el nuevo estado:
+Body para cambiar estado:
 
-```text
-status
+```json
+{
+  "status": "IN_PROGRESS"
+}
 ```
 
-Estados disponibles:
+Estados posibles:
 
 ```text
 OPEN
 IN_PROGRESS
 RESOLVED
 CLOSED
-```
-
-Ejemplo:
-
-```json
-{
-  "status": "IN_PROGRESS"
-}
 ```
 
 ### IncidentDTOResponse
@@ -149,26 +156,35 @@ createdAt
 updatedAt
 ```
 
+Ejemplo:
+
+```json
+{
+  "id": 1,
+  "title": "Aire acondicionado roto",
+  "description": "El aire no enfria en la habitacion",
+  "roomNumber": "203",
+  "department": "MAINTENANCE",
+  "priority": "HIGH",
+  "status": "OPEN",
+  "createdByUserId": 1,
+  "assignedToUserId": 2,
+  "createdAt": "2026-10-08T10:00:00",
+  "updatedAt": "2026-10-08T10:00:00"
+}
+```
+
 ## User DTOs
 
 | DTO | Tipo | Datos |
 | --- | --- | --- |
-| `CreateUserDTORequest` | Request | name, email, password, roleId |
-| `UpdateUserDTORequest` | Request | name, email |
-| `UserDTOResponse` | Response | id, name, email, active, roleId, roleName |
+| `CreateUserDTORequest` | Request | `name`, `email`, `password`, `roleId` |
+| `UpdateUserDTORequest` | Request | `name`, `email` |
+| `UserDTOResponse` | Response | `id`, `name`, `email`, `active`, `roleId`, `roleName` |
 
 ### CreateUserDTORequest
 
-Introducir estos datos para crear un usuario:
-
-```text
-name
-email
-password
-roleId
-```
-
-Ejemplo:
+Body para crear usuario:
 
 ```json
 {
@@ -187,18 +203,20 @@ user_credentials
 user_characteristics
 ```
 
-La password se guarda codificada y no se devuelve en la respuesta.
+La password se guarda cifrada y no se devuelve en la respuesta.
 
 ### UpdateUserDTORequest
 
-Introducir los datos que se quieran modificar:
+Body previsto para modificar usuario:
 
-```text
-name
-email
+```json
+{
+  "name": "Katia Ivanova",
+  "email": "katia.ivanova@test.com"
+}
 ```
 
-El rol y el estado `active` se gestionaran con operaciones especificas.
+El endpoint de update de usuario esta pendiente.
 
 ### UserDTOResponse
 
@@ -213,24 +231,29 @@ roleId
 roleName
 ```
 
-La password nunca se devuelve en un DTO Response.
+Ejemplo:
+
+```json
+{
+  "id": 1,
+  "name": "Katia",
+  "email": "katia@test.com",
+  "active": true,
+  "roleId": 1,
+  "roleName": "RECEPTION"
+}
+```
 
 ## User Role DTOs
 
 | DTO | Tipo | Datos |
 | --- | --- | --- |
-| `CreateUserRoleDTORequest` | Request | name |
-| `UserRoleDTOResponse` | Response | id, name |
+| `CreateUserRoleDTORequest` | Request | `name` |
+| `UserRoleDTOResponse` | Response | `id`, `name` |
 
 ### CreateUserRoleDTORequest
 
-Introducir el nombre del rol:
-
-```text
-name
-```
-
-Ejemplo:
+Body:
 
 ```json
 {
@@ -238,20 +261,16 @@ Ejemplo:
 }
 ```
 
-Este DTO se usa en:
+Roles previstos:
 
 ```text
-POST /api/v1/user-roles
+ADMIN
+RECEPTION
+MAINTENANCE
+CLEANING
 ```
 
 ### UserRoleDTOResponse
-
-Datos que devuelve el backend:
-
-```text
-id
-name
-```
 
 Ejemplo:
 
@@ -262,52 +281,22 @@ Ejemplo:
 }
 ```
 
-## Authentication DTOs
-
-| DTO | Tipo | Datos |
-| --- | --- | --- |
-| `LoginDTORequest` | Request | email, password |
-| `LoginDTOResponse` | Response | userId, name, email, role |
-
-### LoginDTORequest
-
-Introducir los datos para iniciar sesion:
-
-```text
-email
-password
-```
-
-### LoginDTOResponse
-
-Datos que deberia devolver el backend despues de un login correcto:
-
-```text
-userId
-name
-email
-role
-```
-
-La estrategia final de autenticacion todavia no esta cerrada.
-
-No se ha creado un DTO para logout porque todavia no es necesario. Su implementacion dependera de la estrategia que se use con Spring Security.
-
 ## Resumen
 
 ```text
-REQUEST                              RESPONSE
+AUTH
+Basic Auth email/password      ->   JWT string
 
-CreateIncidentDTORequest        ->   IncidentDTOResponse
-UpdateIncidentDTORequest        ->   IncidentDTOResponse
-AssignIncidentDTORequest        ->   IncidentDTOResponse
-UpdateIncidentStatusDTORequest  ->   IncidentDTOResponse
+INCIDENTS
+CreateIncidentDTORequest       ->   IncidentDTOResponse
+UpdateIncidentDTORequest       ->   IncidentDTOResponse
+AssignIncidentDTORequest       ->   IncidentDTOResponse
+UpdateIncidentStatusDTORequest ->   IncidentDTOResponse
 
-CreateUserDTORequest            ->   UserDTOResponse
-UpdateUserDTORequest            ->   UserDTOResponse
+USERS
+CreateUserDTORequest           ->   UserDTOResponse
+UpdateUserDTORequest           ->   UserDTOResponse
 
-CreateUserRoleDTORequest        ->   UserRoleDTOResponse
-
-LoginDTORequest                 ->   LoginDTOResponse
+ROLES
+CreateUserRoleDTORequest       ->   UserRoleDTOResponse
 ```
-

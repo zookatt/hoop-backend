@@ -1,6 +1,6 @@
 # Endpoints del backend
 
-Usar este documento para revisar los endpoints que ya estan hechos, ver cuales faltan y probarlos en Postman.
+Usar este documento para revisar los endpoints disponibles, probarlos en Postman y saber que queda pendiente.
 
 La URL base en local es:
 
@@ -8,67 +8,131 @@ La URL base en local es:
 http://localhost:8080/api/v1
 ```
 
-Arrancar la aplicacion con perfil `local` para poder probar endpoints con `POST` y `PUT`:
+## Autenticacion
 
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
-```
+El login actual se hace con **Basic Auth**.
 
-En Postman, seleccionar siempre esta opcion cuando haya body:
+Endpoint:
 
 ```text
-Body -> raw -> JSON
+POST http://localhost:8080/api/v1/auth/token
 ```
 
-Comprobar tambien que el header sea:
+En Postman:
 
 ```text
-Content-Type: application/json
+Authorization -> Basic Auth
+Username: email del usuario
+Password: password del usuario
 ```
 
-## Endpoints hechos
+No enviar JSON en este endpoint.
 
-| Parte | Metodo | Endpoint | Que hacer | Status esperado |
-| --- | --- | --- | --- | --- |
-| Incidencias | GET | `/incidents` | Revisar todas las incidencias | `200 OK` |
-| Incidencias | GET | `/incidents/{id}` | Revisar una incidencia por id | `200 OK` |
-| Incidencias | POST | `/incidents?createdByUserId={userId}` | Crear una incidencia | `201 Created` |
-| Incidencias | PUT | `/incidents/{id}` | Modificar titulo, descripcion o habitacion | `200 OK` |
-| Incidencias | PUT | `/incidents/{id}/assignment` | Introducir departamento, prioridad y trabajador | `200 OK` |
-| Incidencias | PUT | `/incidents/{id}/status` | Cambiar el estado de la incidencia | `200 OK` |
-| Usuarios | GET | `/users` | Revisar los usuarios creados | `200 OK` |
-| Usuarios | POST | `/users` | Crear un usuario para probar incidencias | `201 Created` |
-| Roles | GET | `/user-roles` | Revisar los roles creados | `200 OK` |
-| Roles | POST | `/user-roles` | Crear un rol | `201 Created` |
+Si el login es correcto, la respuesta es un token JWT en texto plano:
 
-Al crear una incidencia, introducir `createdByUserId` en la URL. Esto es temporal. Mas adelante, cuando este hecha la autenticacion, el usuario deberia salir del usuario logueado.
+```text
+eyJhbGciOiJIUzUxMiJ9...
+```
+
+Para usar el resto de endpoints protegidos:
+
+```text
+Authorization -> Bearer Token
+Token: <token>
+```
+
+O como header:
+
+```text
+Authorization: Bearer <token>
+```
+
+## Endpoints implementados
+
+| Parte | Metodo | Endpoint | Permisos | Que hace | Status esperado |
+| --- | --- | --- | --- | --- | --- |
+| Auth | POST | `/auth/token` | Usuario autenticado con Basic Auth | Genera token JWT | `200 OK` |
+| Incidencias | GET | `/incidents` | Usuario autenticado | Consulta todas las incidencias | `200 OK` |
+| Incidencias | GET | `/incidents/{id}` | Usuario autenticado | Consulta una incidencia por id | `200 OK` |
+| Incidencias | POST | `/incidents` | `ADMIN`, `RECEPTION`, `MAINTENANCE`, `CLEANING` | Crea una incidencia con el usuario logueado | `201 Created` |
+| Incidencias | PUT | `/incidents/{id}` | `ADMIN`, `RECEPTION` | Modifica titulo, descripcion o habitacion | `200 OK` |
+| Incidencias | PUT | `/incidents/{id}/assignment` | `ADMIN`, `RECEPTION` | Asigna departamento, prioridad y trabajador | `200 OK` |
+| Incidencias | PUT | `/incidents/{id}/status` | `ADMIN`, `RECEPTION`, `MAINTENANCE`, `CLEANING` | Cambia el estado de una incidencia | `200 OK` |
+| Usuarios | GET | `/users` | `ADMIN` | Consulta los usuarios creados | `200 OK` |
+| Usuarios | POST | `/users` | `ADMIN` | Crea un usuario interno | `201 Created` |
+| Roles | GET | `/user-roles` | `ADMIN` | Consulta roles creados | `200 OK` |
+| Roles | POST | `/user-roles` | `ADMIN` | Crea un rol | `201 Created` |
+
+Importante: al crear una incidencia ya no se envia `createdByUserId` en la URL. El backend obtiene el usuario creador desde el token del usuario logueado.
 
 ## Endpoints pendientes
 
 | Parte | Metodo | Endpoint | Que falta hacer |
 | --- | --- | --- | --- |
-| Auth | POST | `/auth/login` | Crear login |
-| Auth | POST | `/auth/logout` | Crear logout |
 | Usuarios | GET | `/users/{id}` | Consultar un usuario concreto |
 | Usuarios | PUT | `/users/{id}` | Editar nombre o email |
 | Usuarios | PUT | `/users/{id}/role` | Cambiar el rol de un usuario |
 | Usuarios | PUT | `/users/{id}/deactivate` | Desactivar un usuario |
 | Incidencias | GET | `/incidents/closed` | Consultar historial de incidencias cerradas |
-| Incidencias | PUT | `/incidents/{id}/department` | Cambiar solo el departamento |
-| Incidencias | PUT | `/incidents/{id}/priority` | Cambiar solo la prioridad |
-| Incidencias | PUT | `/incidents/{id}/room-number` | Cambiar solo la habitacion |
+
+Se dejan como mejora futura:
+
+- historial complejo
+- dashboard con estadisticas
+- recuperacion de password
+- logout real con invalidacion de token
+
+Con JWT stateless, el logout basico del frontend puede hacerse eliminando el token guardado en el navegador.
+
+## Reglas de negocio de incidencias
+
+Una incidencia nueva nace siempre en:
+
+```text
+OPEN
+```
+
+Flujo normal:
+
+```text
+OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED
+```
+
+Reglas actuales:
+
+- Para pasar de `OPEN` a `IN_PROGRESS`, la incidencia debe estar asignada a un usuario.
+- Solo una incidencia `IN_PROGRESS` puede pasar a `RESOLVED`.
+- Solo una incidencia `RESOLVED` puede pasar a `CLOSED`.
+- Una incidencia `OPEN` sin asignar puede cerrarse directamente.
+- `MAINTENANCE` y `CLEANING` no pueden cerrar incidencias.
+- Solo `ADMIN` y `RECEPTION` pueden cerrar incidencias.
 
 ## Probar en Postman
 
-### 1. Crear un rol
+### 1. Obtener token
 
-Crear primero un rol, porque para crear un usuario hay que introducir un `roleId`.
+```text
+POST http://localhost:8080/api/v1/auth/token
+```
+
+En `Authorization -> Basic Auth`:
+
+```text
+Username: admin@hoop.test
+Password: Admin1234
+```
+
+Guardar el token devuelto.
+
+### 2. Crear un rol
+
+Requiere token de `ADMIN`.
 
 ```text
 POST http://localhost:8080/api/v1/user-roles
 ```
 
-Introducir este body:
+Body:
 
 ```json
 {
@@ -76,7 +140,7 @@ Introducir este body:
 }
 ```
 
-Comprobar que devuelve `201 Created` y una respuesta parecida a esta:
+Respuesta esperada:
 
 ```json
 {
@@ -85,17 +149,15 @@ Comprobar que devuelve `201 Created` y una respuesta parecida a esta:
 }
 ```
 
-Guardar el `id` del rol.
+### 3. Crear un usuario
 
-### 2. Crear un usuario
-
-Crear un usuario usando el `id` del rol anterior.
+Requiere token de `ADMIN`.
 
 ```text
 POST http://localhost:8080/api/v1/users
 ```
 
-Introducir este body:
+Body:
 
 ```json
 {
@@ -106,7 +168,7 @@ Introducir este body:
 }
 ```
 
-Comprobar que devuelve `201 Created` y una respuesta parecida a esta:
+Respuesta esperada:
 
 ```json
 {
@@ -119,17 +181,15 @@ Comprobar que devuelve `201 Created` y una respuesta parecida a esta:
 }
 ```
 
-Guardar el `id` del usuario.
+### 4. Crear una incidencia
 
-### 3. Crear una incidencia
-
-Crear una incidencia usando el `id` del usuario en `createdByUserId`.
+Requiere token de cualquier rol.
 
 ```text
-POST http://localhost:8080/api/v1/incidents?createdByUserId=1
+POST http://localhost:8080/api/v1/incidents
 ```
 
-Introducir este body:
+Body:
 
 ```json
 {
@@ -139,7 +199,7 @@ Introducir este body:
 }
 ```
 
-Comprobar que devuelve `201 Created` y que la incidencia se crea con estado `OPEN`:
+Respuesta esperada:
 
 ```json
 {
@@ -157,51 +217,37 @@ Comprobar que devuelve `201 Created` y que la incidencia se crea con estado `OPE
 }
 ```
 
-### 4. Revisar incidencias
+### 5. Consultar incidencias
 
-Revisar todas las incidencias:
+Requiere token de cualquier usuario autenticado.
 
 ```text
 GET http://localhost:8080/api/v1/incidents
 ```
 
-Comprobar que devuelve `200 OK`.
-
-Revisar una incidencia concreta:
-
 ```text
 GET http://localhost:8080/api/v1/incidents/1
 ```
 
-Comprobar que devuelve `200 OK`.
+### 6. Asignar departamento, prioridad y trabajador
 
-### 5. Asignar departamento, prioridad y trabajador
-
-Introducir departamento antes de asignar trabajador. Este endpoint permite enviar departamento, prioridad y trabajador en la misma peticion.
+Requiere token de `ADMIN` o `RECEPTION`.
 
 ```text
 PUT http://localhost:8080/api/v1/incidents/1/assignment
 ```
 
-Introducir este body:
+Body:
 
 ```json
 {
   "department": "MAINTENANCE",
   "priority": "HIGH",
-  "assignedToUserId": 1
+  "assignedToUserId": 2
 }
 ```
 
-Comprobar que devuelve `200 OK`.
-
-### 6. Cambiar estado de la incidencia
-
-Seguir este orden:
-
-```text
-OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED
-```
+### 7. Cambiar estado
 
 Empezar trabajo:
 
@@ -215,9 +261,7 @@ PUT http://localhost:8080/api/v1/incidents/1/status
 }
 ```
 
-Comprobar que devuelve `200 OK`.
-
-Resolver incidencia:
+Resolver:
 
 ```text
 PUT http://localhost:8080/api/v1/incidents/1/status
@@ -229,9 +273,7 @@ PUT http://localhost:8080/api/v1/incidents/1/status
 }
 ```
 
-Comprobar que devuelve `200 OK`.
-
-Cerrar incidencia:
+Cerrar:
 
 ```text
 PUT http://localhost:8080/api/v1/incidents/1/status
@@ -243,14 +285,14 @@ PUT http://localhost:8080/api/v1/incidents/1/status
 }
 ```
 
-Comprobar que devuelve `200 OK`.
-
 ## Errores comunes
 
 | Error | Que revisar | Como solucionarlo |
 | --- | --- | --- |
-| `403 Forbidden` | Revisar si la app esta arrancada con perfil `local` | Arrancar con `-Dspring-boot.run.profiles=local` |
-| `415 Unsupported Media Type` | Revisar si Postman esta mandando JSON | Seleccionar `Body -> raw -> JSON` |
-| `404 User not found with id X` | Revisar si existe el usuario | Crear primero un usuario |
-| `404 Role not found with id X` | Revisar si existe el rol | Crear primero un rol |
-| `409 Conflict` | Revisar si se esta rompiendo una regla del servicio | Seguir el flujo correcto de estados o revisar la asignacion |
+| `401 Unauthorized` | Token ausente, expirado o credenciales Basic Auth incorrectas | Pedir un token nuevo en `/auth/token` |
+| `403 Forbidden` | El rol no tiene permiso para esa accion | Probar con un usuario con rol permitido |
+| `415 Unsupported Media Type` | Postman no esta enviando JSON en endpoints con body | Usar `Body -> raw -> JSON` |
+| `400 Bad Request` | Falta el campo `status` al cambiar estado | Enviar `{ "status": "..." }` |
+| `404 User not found with id X` | No existe el usuario asignado | Crear o revisar el usuario |
+| `404 Incident not found with id X` | No existe la incidencia | Revisar el id |
+| `409 Conflict` | Se rompe una regla de negocio | Revisar flujo de estados y asignacion |

@@ -1,6 +1,6 @@
 # HOOP Backend - Base de datos
 
-HOOP utiliza **MySQL 8** como sistema gestor de base de datos y **JPA/Hibernate** para gestionar la persistencia.
+HOOP usa **MySQL 8** como base de datos y **JPA/Hibernate** para gestionar la persistencia.
 
 La base de datos principal se llama:
 
@@ -10,7 +10,7 @@ hoop
 
 ## Entidades
 
-El modelo está compuesto actualmente por cinco entidades:
+El modelo actual esta compuesto por:
 
 - `UserRole`
 - `User`
@@ -18,7 +18,7 @@ El modelo está compuesto actualmente por cinco entidades:
 - `UserCharacteristics`
 - `Incident`
 
-Hibernate genera las siguientes tablas:
+Tablas principales:
 
 ```text
 user_role
@@ -30,7 +30,7 @@ incident
 
 ## USER_ROLE
 
-Almacena los roles disponibles en la aplicación.
+Almacena los roles disponibles.
 
 ```text
 USER_ROLE
@@ -48,9 +48,15 @@ MAINTENANCE
 CLEANING
 ```
 
+Relacion:
+
+```text
+UserRole 1 ---- N User
+```
+
 ## USERS
 
-Representa a los usuarios del sistema.
+Representa a los trabajadores del sistema.
 
 ```text
 USERS
@@ -60,17 +66,11 @@ FK role_id  INT
    active   BOOLEAN
 ```
 
-`active` permite desactivar usuarios sin eliminarlos físicamente de la base de datos.
-
-Relación:
-
-```text
-UserRole 1 ---- N User
-```
+`active` permite desactivar usuarios sin eliminarlos fisicamente.
 
 ## USER_CREDENTIALS
 
-Contiene la información utilizada para la autenticación.
+Contiene los datos usados para autenticacion.
 
 ```text
 USER_CREDENTIALS
@@ -81,19 +81,19 @@ FK user_id   INT
    password  VARCHAR
 ```
 
-El email es único y cada usuario dispone de un único registro de credenciales.
+El email identifica al usuario en el login.
 
-Relación:
+La password se guarda cifrada con BCrypt.
+
+Relacion:
 
 ```text
 User 1 ---- 1 UserCredentials
 ```
 
-Las contraseñas no se almacenarán en texto plano. La capa de seguridad se encargará de almacenar un hash seguro.
-
 ## USER_CHARACTERISTICS
 
-Contiene información descriptiva del trabajador.
+Contiene datos descriptivos del trabajador.
 
 ```text
 USER_CHARACTERISTICS
@@ -103,7 +103,7 @@ FK user_id  INT
    name     VARCHAR
 ```
 
-Relación:
+Relacion:
 
 ```text
 User 1 ---- 1 UserCharacteristics
@@ -111,7 +111,7 @@ User 1 ---- 1 UserCharacteristics
 
 ## INCIDENT
 
-Representa una incidencia registrada dentro del alojamiento.
+Representa una incidencia registrada en el alojamiento.
 
 ```text
 INCIDENT
@@ -129,7 +129,7 @@ FK assigned_to    INT NULL
    updated_at     TIMESTAMP
 ```
 
-Una incidencia se crea inicialmente con los datos básicos:
+Una incidencia se crea con:
 
 ```text
 title
@@ -138,13 +138,15 @@ roomNumber
 createdBy
 ```
 
-Su estado inicial es:
+`createdBy` sale del usuario autenticado.
+
+Estado inicial:
 
 ```text
 OPEN
 ```
 
-Inicialmente pueden no estar definidos:
+Inicialmente pueden estar vacios:
 
 ```text
 department = null
@@ -152,20 +154,18 @@ priority = null
 assignedTo = null
 ```
 
-Estos datos se completan posteriormente durante la valoración y asignación de la incidencia.
+Estos datos se completan durante la valoracion y asignacion.
 
-## Department
+## Enums
 
-El departamento se representa mediante el enum `Department`:
+### Department
 
 ```text
 MAINTENANCE
 CLEANING
 ```
 
-## Priority
-
-La prioridad se representa mediante el enum `Priority`:
+### Priority
 
 ```text
 LOW
@@ -173,9 +173,7 @@ MEDIUM
 HIGH
 ```
 
-## IncidentStatus
-
-El estado se representa mediante el enum `IncidentStatus`:
+### IncidentStatus
 
 ```text
 OPEN
@@ -188,25 +186,26 @@ Flujo principal:
 
 ```text
 OPEN
-  ↓
+  |
+  v
 IN_PROGRESS
-  ↓
+  |
+  v
 RESOLVED
-  ↓
+  |
+  v
 CLOSED
 ```
 
-Los enums se almacenan mediante:
+Los enums se almacenan con:
 
 ```java
 @Enumerated(EnumType.STRING)
 ```
 
-Esto permite almacenar valores legibles en MySQL en lugar de números.
+Esto permite guardar valores legibles en MySQL.
 
 ## Relaciones
-
-Las principales relaciones del modelo son:
 
 ```text
 UserRole 1 ---- N User
@@ -224,11 +223,11 @@ User 1 ---- N Incident
 
 `createdBy` es obligatorio.
 
-`assignedTo` es opcional porque una incidencia puede existir antes de ser asignada a un trabajador.
+`assignedTo` es opcional porque una incidencia puede existir antes de asignarse a un trabajador.
 
 ## Repositories
 
-Cada entidad dispone de un repository basado en Spring Data JPA:
+Repositories actuales:
 
 ```text
 UserRoleRepository
@@ -238,7 +237,7 @@ UserCharacteristicsRepository
 IncidentRepository
 ```
 
-Los repositories extienden `JpaRepository` y proporcionan operaciones básicas de persistencia como:
+Extienden `JpaRepository` y proporcionan operaciones como:
 
 ```text
 save()
@@ -247,5 +246,3 @@ findAll()
 deleteById()
 existsById()
 ```
-
-Las consultas específicas se añadirán según las necesidades de las funcionalidades del proyecto.

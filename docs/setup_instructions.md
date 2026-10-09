@@ -1,88 +1,152 @@
-# HOOP Backend - Configuración y ejecución
+# HOOP Backend - Configuracion y ejecucion
 
-Esta guía explica cómo iniciar la base de datos MySQL mediante Docker y ejecutar el backend de HOOP.
+Esta guia explica como iniciar MySQL con Docker y ejecutar el backend de HOOP.
 
 ## Requisitos
-
-Es necesario tener instalado:
 
 - Java 21
 - Docker Desktop
 - Git
 
-El proyecto incluye Maven Wrapper, por lo que no es necesario instalar Maven globalmente.
+El proyecto incluye Maven Wrapper, por lo que no es obligatorio instalar Maven globalmente.
 
-## 1. Clonar el repositorio
+## 1. Entrar en el proyecto
 
-```bash
-git clone <URL_DEL_REPOSITORIO>
+```powershell
+cd C:\Users\zotov\Development\FactoriaF5\fullstack-personal\hoop-backend
 ```
 
-Entrar en el proyecto:
+## 2. Variables de entorno necesarias
 
-```bash
-cd hoop-backend
+La aplicacion necesita estas variables:
+
+```text
+DB_URL=jdbc:mysql://localhost:3306/hoop
+DB_USERNAME=hoop_user
+DB_PASSWORD=hoop_password
+JWT_KEY=<clave-larga-para-firmar-jwt>
 ```
 
-## 2. Iniciar Docker
+Docker Compose necesita estas variables:
 
-Docker Desktop debe estar ejecutándose antes de iniciar la base de datos.
+```text
+MYSQL_DATABASE=hoop
+MYSQL_USER=hoop_user
+MYSQL_PASSWORD=hoop_password
+MYSQL_ROOT_PASSWORD=root_password
+```
 
-Para comprobar que Docker funciona:
+Si arrancas desde VS Code, puedes ponerlas en `.vscode/launch.json` dentro de `env`.
 
-```bash
+Ejemplo:
+
+```json
+{
+  "DB_URL": "jdbc:mysql://localhost:3306/hoop",
+  "DB_USERNAME": "hoop_user",
+  "DB_PASSWORD": "hoop_password",
+  "MYSQL_DATABASE": "hoop",
+  "MYSQL_USER": "hoop_user",
+  "MYSQL_PASSWORD": "hoop_password",
+  "MYSQL_ROOT_PASSWORD": "root_password",
+  "JWT_KEY": "<clave-larga-para-firmar-jwt>"
+}
+```
+
+No subir claves reales a repositorios publicos.
+
+## 3. Iniciar Docker
+
+Docker Desktop debe estar ejecutandose antes de iniciar la base de datos.
+
+Comprobar que Docker funciona:
+
+```powershell
 docker ps
 ```
 
-## 3. Iniciar MySQL
+## 4. Iniciar MySQL
 
-Desde la raíz de `hoop-backend`:
+Desde la raiz de `hoop-backend`:
 
-```bash
+```powershell
 docker compose up -d
 ```
 
-Docker Compose iniciará el servicio MySQL definido en `compose.yaml`.
-
 Comprobar los contenedores:
 
-```bash
+```powershell
 docker ps
 ```
 
-Debería aparecer:
+Deberia aparecer:
 
 ```text
 hoop-mysql
 ```
 
-## 4. Ejecutar Spring Boot
+## 5. Ejecutar Spring Boot
 
-Con MySQL funcionando, iniciar el backend.
-
-Linux/macOS:
-
-```bash
-./mvnw spring-boot:run
-```
-
-Windows PowerShell:
+Con MySQL funcionando:
 
 ```powershell
-.\mvnw spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
-La aplicación se inicia por defecto en:
+Si se quiere indicar perfil local por comando:
+
+```powershell
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
+```
+
+La aplicacion se inicia por defecto en:
 
 ```text
 http://localhost:8080
 ```
 
-## 5. Acceder a MySQL
+## 6. Ejecutar desde VS Code
 
-Para acceder directamente a MySQL dentro del contenedor:
+Usar la configuracion de launch de `HoopBackendApplication`.
 
-```bash
+Recomendado:
+
+```json
+{
+  "type": "java",
+  "name": "HoopBackendApplication",
+  "request": "launch",
+  "mainClass": "zotov.hoop_backend.HoopBackendApplication",
+  "projectName": "hoop-backend",
+  "cwd": "C:\\Users\\zotov\\Development\\FactoriaF5\\fullstack-personal\\hoop-backend",
+  "vmArgs": "-Dspring.profiles.active=local",
+  "env": {
+    "DB_URL": "jdbc:mysql://localhost:3306/hoop",
+    "DB_USERNAME": "hoop_user",
+    "DB_PASSWORD": "hoop_password",
+    "MYSQL_DATABASE": "hoop",
+    "MYSQL_USER": "hoop_user",
+    "MYSQL_PASSWORD": "hoop_password",
+    "MYSQL_ROOT_PASSWORD": "root_password",
+    "JWT_KEY": "<clave-larga-para-firmar-jwt>"
+  }
+}
+```
+
+## 7. Probar Swagger
+
+Con la aplicacion arrancada:
+
+```text
+http://localhost:8080/swagger-ui.html
+http://localhost:8080/api-docs
+```
+
+## 8. Acceder a MySQL
+
+Entrar al contenedor:
+
+```powershell
 docker exec -it hoop-mysql mysql -u hoop_user -p
 ```
 
@@ -92,24 +156,31 @@ Seleccionar la base de datos:
 USE hoop;
 ```
 
-Consultar las tablas:
+Consultar tablas:
 
 ```sql
 SHOW TABLES;
 ```
 
-## 6. Detener MySQL
+Consultar usuarios:
 
-Para detener los servicios:
+```sql
+SELECT u.id, uc.email, u.active, ur.name AS role
+FROM users u
+JOIN user_credentials uc ON uc.user_id = u.id
+JOIN user_role ur ON ur.id = u.role_id;
+```
 
-```bash
+## 9. Detener MySQL
+
+```powershell
 docker compose down
 ```
 
 Los datos almacenados en el volumen de MySQL se conservan.
 
-Para iniciar nuevamente el servicio:
+Para borrar tambien los datos del volumen:
 
-```bash
-docker compose up -d
+```powershell
+docker compose down -v
 ```

@@ -1,86 +1,153 @@
 # HOOP Backend
 
-Backend de **HOOP (Hospitality Operations Optimization Platform)**, una aplicación web para la gestión de incidencias en alojamientos turísticos.
+Backend de **HOOP (Hospitality Operations Optimization Platform)**, una aplicacion web para gestionar incidencias internas en alojamientos turisticos.
 
-HOOP permite registrar, valorar, asignar y gestionar incidencias, facilitando la coordinación entre los departamentos de **Recepción, Mantenimiento y Limpieza**.
+HOOP permite registrar, valorar, asignar y cerrar incidencias, facilitando la coordinacion entre los roles de **Administracion, Recepcion, Mantenimiento y Limpieza**.
 
-## Tecnologías
+## Tecnologias
 
 - Java 21
 - Spring Boot
+- Spring Security
+- Spring Data JPA
 - Maven
 - MySQL 8
 - Docker
 - Docker Compose
 - SpringDoc OpenAPI
 
-## Dependencias
+## Objetivo del PMV
 
-### Spring Web
+El producto minimo viable actual se centra en:
 
-Permite desarrollar la API REST del proyecto y gestionar las peticiones HTTP entre el frontend y el backend.
+- login con usuario interno
+- generacion de token JWT
+- usuarios con roles
+- creacion de incidencias
+- consulta de incidencias
+- asignacion de departamento, prioridad y trabajador
+- cambio de estado de incidencias
+- control de permisos por rol
 
-### Spring Data JPA
+No existe registro publico. Los usuarios de la aplicacion son trabajadores internos y deben ser creados por un usuario con rol `ADMIN`.
 
-Permite trabajar con la base de datos mediante entidades y repositorios Java.
+## Roles
 
-JPA, junto con Hibernate, se utiliza para mapear las clases Java con las tablas de MySQL y gestionar la persistencia de los datos.
-
-### Spring Security
-
-Se utilizará para implementar la autenticación y controlar el acceso a las funcionalidades de la aplicación según el rol del usuario.
-
-Los roles definidos para HOOP son:
+Los roles iniciales son:
 
 - `ADMIN`
 - `RECEPTION`
 - `MAINTENANCE`
 - `CLEANING`
 
-### MySQL Driver
+Reglas principales:
 
-Permite establecer la conexión entre Spring Boot y la base de datos MySQL.
-
-### Validation
-
-Permite validar los datos recibidos por la API antes de procesarlos, por ejemplo campos obligatorios o formatos de email.
-
-### SpringDoc OpenAPI
-
-Permite generar automáticamente la documentación de la API REST en formato OpenAPI y consultar los endpoints desde Swagger UI.
-
-Cuando la aplicación esté arrancada, la documentación se podrá consultar en:
-
-- `http://localhost:8080/swagger-ui.html`
-- `http://localhost:8080/v3/api-docs`
-
-### Spring Boot DevTools
-
-Facilita el desarrollo proporcionando herramientas como el reinicio automático de la aplicación cuando se realizan cambios en el código.
-
-### Docker Compose Support
-
-Permite integrar Spring Boot con los servicios definidos mediante Docker Compose durante el desarrollo.
-
-### Lombok
-
-Permite reducir código repetitivo mediante anotaciones que pueden generar automáticamente elementos como getters, setters y constructores.
+- Todos los roles pueden iniciar sesion.
+- Todos los roles pueden crear incidencias.
+- `ADMIN` gestiona usuarios, roles e incidencias.
+- `RECEPTION` coordina, asigna, valida y cierra incidencias.
+- `MAINTENANCE` y `CLEANING` trabajan solo con incidencias asignadas y no pueden cerrarlas definitivamente.
 
 ## Arquitectura
 
-El backend sigue una arquitectura por capas:
+El backend esta organizado por funcionalidad:
+
+```text
+auth
+characteristics
+config
+credentials
+incident
+role
+user
+```
+
+Dentro de cada funcionalidad se separan responsabilidades como:
+
+```text
+controller
+dto
+entity
+repository
+service
+```
+
+El flujo principal es:
 
 ```text
 Controller
-    ↓
+    |
 Service
-    ↓
+    |
 Repository
-    ↓
+    |
 MySQL
 ```
 
-Actualmente el proyecto cuenta con las entidades JPA, los DTOs, los servicios y los repositories de Spring Data JPA.
+## Seguridad
+
+La seguridad actual usa:
+
+- Spring Security
+- Basic Auth para pedir el token
+- JWT para usar la API despues del login
+- sesiones stateless
+- CSRF desactivado para API REST
+- password cifrada con BCrypt
+
+Login actual:
+
+```text
+POST /api/v1/auth/token
+```
+
+Este endpoint no recibe JSON. Se prueba con **Basic Auth** usando email y password.
+
+Despues, el frontend o Postman debe enviar el token en cada peticion protegida:
+
+```text
+Authorization: Bearer <token>
+```
+
+## Endpoints principales
+
+La URL base local es:
+
+```text
+http://localhost:8080/api/v1
+```
+
+Endpoints implementados:
+
+- `POST /auth/token`
+- `GET /users`
+- `POST /users`
+- `GET /user-roles`
+- `POST /user-roles`
+- `GET /incidents`
+- `GET /incidents/{id}`
+- `POST /incidents`
+- `PUT /incidents/{id}`
+- `PUT /incidents/{id}/assignment`
+- `PUT /incidents/{id}/status`
+
+Ver detalle en [docs/endpoints.md](docs/endpoints.md).
+
+## Documentacion tecnica
+
+- [Configuracion y ejecucion](docs/setup_instructions.md)
+- [Endpoints](docs/endpoints.md)
+- [DTOs](docs/dto.md)
+- [Modelo de base de datos](docs/database_model.md)
+
+## Swagger
+
+Con la aplicacion arrancada:
+
+```text
+http://localhost:8080/swagger-ui.html
+http://localhost:8080/api-docs
+```
 
 ## Diagramas
 
@@ -92,27 +159,25 @@ Actualmente el proyecto cuenta con las entidades JPA, los DTOs, los servicios y 
 
 ![Diagrama de base de datos de HOOP](docs/diagrams/HOOP%20-%20Database%20Diagram.png)
 
-## Documentación
-
-La documentación técnica del backend se encuentra en la carpeta `docs`:
-
-- [Configuración y ejecución](docs/setup_instructions.md)
-- [Modelo de base de datos](docs/database_model.md)
-- [DTOs](docs/dto.md)
-
 ## Estado del proyecto
 
-HOOP se encuentra actualmente en desarrollo.
+Implementado hasta ahora:
 
-Actualmente se ha implementado:
-
-- configuración de MySQL mediante Docker Compose
-- conexión entre Spring Boot y MySQL
-- entidades JPA
-- relaciones entre entidades
-- enums de incidencias
-- repositories con Spring Data JPA
+- base de datos MySQL dockerizada
+- entidades JPA principales
+- repositories
 - servicios
-- DTOs de autenticación, usuarios e incidencias
+- DTOs
+- controladores REST principales
+- login con Basic Auth
+- generacion de JWT
+- proteccion de endpoints por rol
+- reglas de negocio para estados de incidencias
 
-Los siguientes pasos incluyen la implementación de controladores REST, seguridad y tests.
+Pendiente o mejora futura:
+
+- endpoints avanzados de usuarios
+- historial de incidencias cerradas
+- dashboard con estadisticas
+- mas tests unitarios e integracion
+- documentacion final de presentacion
