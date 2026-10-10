@@ -1,6 +1,6 @@
 # Endpoints del backend
 
-Usar este documento para revisar los endpoints disponibles, probarlos en Postman y saber que queda pendiente.
+Usar este documento para revisar los endpoints disponibles, probarlos en Postman y entender las reglas de acceso por rol.
 
 La URL base en local es:
 
@@ -52,8 +52,8 @@ Authorization: Bearer <token>
 | Parte | Metodo | Endpoint | Permisos | Que hace | Status esperado |
 | --- | --- | --- | --- | --- | --- |
 | Auth | POST | `/auth/token` | Usuario autenticado con Basic Auth | Genera token JWT | `200 OK` |
-| Incidencias | GET | `/incidents` | Usuario autenticado | Consulta todas las incidencias | `200 OK` |
-| Incidencias | GET | `/incidents/{id}` | Usuario autenticado | Consulta una incidencia por id | `200 OK` |
+| Incidencias | GET | `/incidents` | Usuario autenticado | Consulta incidencias segun rol. `ADMIN` y `RECEPTION` ven todas; `MAINTENANCE` ve solo mantenimiento; `CLEANING` ve solo limpieza | `200 OK` |
+| Incidencias | GET | `/incidents/{id}` | Usuario autenticado con permiso sobre la incidencia | Consulta una incidencia por id | `200 OK` |
 | Incidencias | POST | `/incidents` | `ADMIN`, `RECEPTION`, `MAINTENANCE`, `CLEANING` | Crea una incidencia con el usuario logueado | `201 Created` |
 | Incidencias | PUT | `/incidents/{id}` | `ADMIN`, `RECEPTION` | Modifica titulo, descripcion o habitacion | `200 OK` |
 | Incidencias | PUT | `/incidents/{id}/assignment` | `ADMIN`, `RECEPTION` | Asigna departamento, prioridad y trabajador | `200 OK` |
@@ -64,6 +64,14 @@ Authorization: Bearer <token>
 | Roles | POST | `/user-roles` | `ADMIN` | Crea un rol | `201 Created` |
 
 Importante: al crear una incidencia ya no se envia `createdByUserId` en la URL. El backend obtiene el usuario creador desde el token del usuario logueado.
+
+El listado de incidencias se devuelve ordenado por fecha de creacion descendente:
+
+```text
+createdAt DESC
+```
+
+Esto hace que las incidencias mas nuevas aparezcan primero.
 
 ## Endpoints pendientes
 
@@ -104,6 +112,12 @@ Reglas actuales:
 - Solo una incidencia `IN_PROGRESS` puede pasar a `RESOLVED`.
 - Solo una incidencia `RESOLVED` puede pasar a `CLOSED`.
 - Una incidencia `OPEN` sin asignar puede cerrarse directamente.
+- `ADMIN` y `RECEPTION` pueden ver todas las incidencias.
+- `ADMIN` y `RECEPTION` pueden editar datos basicos, asignar y cerrar incidencias.
+- `MAINTENANCE` solo puede ver incidencias del departamento `MAINTENANCE`.
+- `CLEANING` solo puede ver incidencias del departamento `CLEANING`.
+- `MAINTENANCE` y `CLEANING` no pueden editar datos basicos ni asignar incidencias.
+- `MAINTENANCE` y `CLEANING` solo pueden cambiar estado a `IN_PROGRESS` o `RESOLVED` en incidencias de su departamento.
 - `MAINTENANCE` y `CLEANING` no pueden cerrar incidencias.
 - Solo `ADMIN` y `RECEPTION` pueden cerrar incidencias.
 
@@ -229,6 +243,20 @@ GET http://localhost:8080/api/v1/incidents
 GET http://localhost:8080/api/v1/incidents/1
 ```
 
+Segun rol:
+
+```text
+ADMIN / RECEPTION -> reciben todas las incidencias
+MAINTENANCE       -> recibe solo incidencias con department = MAINTENANCE
+CLEANING          -> recibe solo incidencias con department = CLEANING
+```
+
+Si `MAINTENANCE` o `CLEANING` intenta consultar por id una incidencia de otro departamento, la respuesta esperada es:
+
+```text
+403 Forbidden
+```
+
 ### 6. Asignar departamento, prioridad y trabajador
 
 Requiere token de `ADMIN` o `RECEPTION`.
@@ -248,6 +276,14 @@ Body:
 ```
 
 ### 7. Cambiar estado
+
+Permisos:
+
+```text
+ADMIN / RECEPTION -> pueden cambiar estados segun reglas de negocio
+MAINTENANCE       -> solo IN_PROGRESS o RESOLVED en incidencias MAINTENANCE
+CLEANING          -> solo IN_PROGRESS o RESOLVED en incidencias CLEANING
+```
 
 Empezar trabajo:
 

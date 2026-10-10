@@ -246,3 +246,23 @@ findAll()
 deleteById()
 existsById()
 ```
+
+`IncidentRepository` tambien define:
+
+```text
+findAllByOrderByCreatedAtDesc()
+```
+
+Este metodo se usa para devolver las incidencias mas nuevas primero en `GET /api/v1/incidents`.
+
+## Visibilidad por rol
+
+La base de datos guarda todas las incidencias, pero el backend filtra lo que cada rol puede consultar:
+
+```text
+ADMIN / RECEPTION -> todas las incidencias
+MAINTENANCE       -> solo department = MAINTENANCE
+CLEANING          -> solo department = CLEANING
+```
+
+Las incidencias nuevas pueden tener `department = null`. En ese estado son visibles para `ADMIN` y `RECEPTION`, que se encargan de valorarlas y asignarlas.

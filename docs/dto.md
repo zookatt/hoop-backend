@@ -156,6 +156,13 @@ createdAt
 updatedAt
 ```
 
+Notas:
+
+- `department`, `priority` y `assignedToUserId` pueden ser `null` cuando la incidencia esta creada pero todavia no ha sido valorada o asignada.
+- En frontend, las incidencias sin departamento/asignacion se muestran como `Sin asignar`.
+- El endpoint `GET /api/v1/incidents` devuelve las incidencias ordenadas por `createdAt` descendente.
+- La visibilidad de incidencias depende del rol del usuario autenticado.
+
 Ejemplo:
 
 ```json
@@ -171,6 +178,24 @@ Ejemplo:
   "assignedToUserId": 2,
   "createdAt": "2026-10-08T10:00:00",
   "updatedAt": "2026-10-08T10:00:00"
+}
+```
+
+Ejemplo de incidencia nueva sin asignar:
+
+```json
+{
+  "id": 2,
+  "title": "Mancha en sofa",
+  "description": "El sofa necesita revision",
+  "roomNumber": "204",
+  "department": null,
+  "priority": null,
+  "status": "OPEN",
+  "createdByUserId": 1,
+  "assignedToUserId": null,
+  "createdAt": "2026-10-08T10:15:00",
+  "updatedAt": "2026-10-08T10:15:00"
 }
 ```
 

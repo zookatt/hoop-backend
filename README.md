@@ -28,6 +28,8 @@ El producto minimo viable actual se centra en:
 - asignacion de departamento, prioridad y trabajador
 - cambio de estado de incidencias
 - control de permisos por rol
+- filtrado de incidencias por rol
+- orden de incidencias nuevas primero
 
 No existe registro publico. Los usuarios de la aplicacion son trabajadores internos y deben ser creados por un usuario con rol `ADMIN`.
 
@@ -46,7 +48,7 @@ Reglas principales:
 - Todos los roles pueden crear incidencias.
 - `ADMIN` gestiona usuarios, roles e incidencias.
 - `RECEPTION` coordina, asigna, valida y cierra incidencias.
-- `MAINTENANCE` y `CLEANING` trabajan solo con incidencias asignadas y no pueden cerrarlas definitivamente.
+- `MAINTENANCE` y `CLEANING` trabajan solo con incidencias de su departamento y no pueden cerrarlas definitivamente.
 
 ## Arquitectura
 
@@ -173,6 +175,8 @@ Implementado hasta ahora:
 - generacion de JWT
 - proteccion de endpoints por rol
 - reglas de negocio para estados de incidencias
+- filtrado de consulta de incidencias segun rol
+- listado de incidencias ordenado por fecha de creacion descendente
 
 Pendiente o mejora futura:
 
