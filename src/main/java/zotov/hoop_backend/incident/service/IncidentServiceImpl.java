@@ -23,7 +23,7 @@ public class IncidentServiceImpl implements IncidentService {
 
     @Override
     public List<Incident> findAll() {
-        return incidentRepository.findAll();
+        return incidentRepository.findAllByOrderByCreatedAtDesc();
     }
 
     @Override
