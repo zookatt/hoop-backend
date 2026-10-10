@@ -91,6 +91,12 @@ public class IncidentController {
             @RequestBody UpdateIncidentDTORequest request, Authentication authentication) {
         Incident incident = findIncidentOrFail(id);
 
+        if (!isAdminOrReception(authentication)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Only ADMIN or RECEPTION can edit incidents");
+        }
+
         if (request.title() != null) {
             incident.setTitle(request.title());
         }
@@ -108,8 +114,15 @@ public class IncidentController {
     @PutMapping("/{id}/assignment")
     public IncidentDTOResponse assign(
             @PathVariable Integer id,
-            @RequestBody AssignIncidentDTORequest request) {
+            @RequestBody AssignIncidentDTORequest request,
+            Authentication authentication) {
         Incident incident = findIncidentOrFail(id);
+
+        if (!isAdminOrReception(authentication)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Only ADMIN or RECEPTION can assign incidents");
+        }
 
         try {
             if (request.department() != null) {
