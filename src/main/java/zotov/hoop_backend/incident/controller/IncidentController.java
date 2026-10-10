@@ -152,15 +152,10 @@ public class IncidentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The incident status is required");
         }
 
-        boolean canCloseIncident = authentication.getAuthorities()
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("SCOPE_ADMIN")
-                        || authority.getAuthority().equals("SCOPE_RECEPTION"));
-
-        if (request.status() == IncidentStatus.CLOSED && !canCloseIncident) {
+        if (!canChangeStatus(authentication, incident, request.status())) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
-                    "Only ADMIN or RECEPTION can close incidents");
+                    "You cannot change this incident status");
         }
 
         try {
