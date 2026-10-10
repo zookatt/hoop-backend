@@ -193,6 +193,58 @@ public class IncidentController {
                         "User not found with id " + id));
     }
 
+    private boolean canViewIncident(Authentication authentication, Incident incident) {
+        if (isAdminOrReception(authentication)) {
+            return true;
+        }
+
+        Department allowedDepartment = getAllowedDepartment(authentication);
+
+        return allowedDepartment != null
+                && incident.getDepartment() == allowedDepartment;
+    }
+
+    private boolean canChangeStatus(
+            Authentication authentication,
+            Incident incident,
+            IncidentStatus requestedStatus) {
+        if (isAdminOrReception(authentication)) {
+            return true;
+        }
+
+        Department allowedDepartment = getAllowedDepartment(authentication);
+
+        if (allowedDepartment == null || incident.getDepartment() != allowedDepartment) {
+            return false;
+        }
+
+        return requestedStatus == IncidentStatus.IN_PROGRESS
+                || requestedStatus == IncidentStatus.RESOLVED;
+    }
+
+    private boolean isAdminOrReception(Authentication authentication) {
+        return hasAuthority(authentication, "SCOPE_ADMIN")
+                || hasAuthority(authentication, "SCOPE_RECEPTION");
+    }
+
+    private Department getAllowedDepartment(Authentication authentication) {
+        if (hasAuthority(authentication, "SCOPE_MAINTENANCE")) {
+            return Department.MAINTENANCE;
+        }
+
+        if (hasAuthority(authentication, "SCOPE_CLEANING")) {
+            return Department.CLEANING;
+        }
+
+        return null;
+    }
+
+    private boolean hasAuthority(Authentication authentication, String authorityName) {
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals(authorityName));
+    }
+
     private static IncidentDTOResponse toResponse(Incident incident) {
         return new IncidentDTOResponse(
                 incident.getId(),
