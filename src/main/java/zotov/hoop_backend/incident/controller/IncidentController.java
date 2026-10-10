@@ -21,6 +21,7 @@ import zotov.hoop_backend.incident.enums.IncidentStatus;
 import zotov.hoop_backend.user.entity.User;
 import zotov.hoop_backend.incident.service.IncidentService;
 import zotov.hoop_backend.user.service.UserService;
+import zotov.hoop_backend.incident.enums.Department;
 
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -39,16 +40,26 @@ public class IncidentController {
     }
 
     @GetMapping
-    public List<IncidentDTOResponse> findAll() {
+    public List<IncidentDTOResponse> findAll(Authentication authentication) {
         return incidentService.findAll()
                 .stream()
+                .filter(incident -> canViewIncident(authentication, incident))
                 .map(IncidentController::toResponse)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public IncidentDTOResponse findById(@PathVariable Integer id) {
+    public IncidentDTOResponse findById(
+            @PathVariable Integer id,
+            Authentication authentication) {
         Incident incident = findIncidentOrFail(id);
+
+        if (!canViewIncident(authentication, incident)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "You cannot view this incident");
+        }
+
         return toResponse(incident);
     }
 
