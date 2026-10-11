@@ -122,6 +122,7 @@ public class UserServiceImpl implements UserService {
                 credentials == null ? null : credentials.getEmail(),
                 user.getActive(),
                 user.getRole().getId(),
-                user.getRole().getName());
+                user.getRole().getName(),
+                credentials == null ? null : credentials.getMustChangePassword());
     }
 }
