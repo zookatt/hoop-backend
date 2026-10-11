@@ -75,15 +75,18 @@ Contiene los datos usados para autenticacion.
 ```text
 USER_CREDENTIALS
 -----------------------
-PK id        INT
-FK user_id   INT
-   email     VARCHAR
-   password  VARCHAR
+PK id                 INT
+FK user_id            INT
+   email              VARCHAR
+   password           VARCHAR
+   must_change_password BOOLEAN
 ```
 
 El email identifica al usuario en el login.
 
 La password se guarda cifrada con BCrypt.
+
+`mustChangePassword` indica si el trabajador debe cambiar la password temporal antes de recibir un token JWT.
 
 Relacion:
 

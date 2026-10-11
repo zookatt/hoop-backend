@@ -23,6 +23,8 @@ El producto minimo viable actual se centra en:
 - login con usuario interno
 - generacion de token JWT
 - usuarios con roles
+- creacion de usuarios internos por `ADMIN`
+- cambio obligatorio de password en el primer login
 - creacion de incidencias
 - consulta de incidencias
 - asignacion de departamento, prioridad y trabajador
@@ -96,6 +98,7 @@ La seguridad actual usa:
 - sesiones stateless
 - CSRF desactivado para API REST
 - password cifrada con BCrypt
+- cambio obligatorio de password inicial para usuarios creados por `ADMIN`
 
 Login actual:
 
@@ -111,6 +114,12 @@ Despues, el frontend o Postman debe enviar el token en cada peticion protegida:
 Authorization: Bearer <token>
 ```
 
+Si el usuario tiene una password temporal, `/auth/token` devuelve `409 Conflict`. Primero debe llamar a:
+
+```text
+POST /api/v1/auth/change-password
+```
+
 ## Endpoints principales
 
 La URL base local es:
@@ -122,7 +131,9 @@ http://localhost:8080/api/v1
 Endpoints implementados:
 
 - `POST /auth/token`
+- `POST /auth/change-password`
 - `GET /users`
+- `GET /users/{id}`
 - `POST /users`
 - `GET /user-roles`
 - `POST /user-roles`
@@ -173,6 +184,8 @@ Implementado hasta ahora:
 - controladores REST principales
 - login con Basic Auth
 - generacion de JWT
+- creacion de usuarios por `ADMIN`
+- cambio obligatorio de password inicial
 - proteccion de endpoints por rol
 - reglas de negocio para estados de incidencias
 - filtrado de consulta de incidencias segun rol
@@ -180,7 +193,9 @@ Implementado hasta ahora:
 
 Pendiente o mejora futura:
 
-- endpoints avanzados de usuarios
+- editar usuarios
+- cambiar rol de usuarios
+- desactivar usuarios
 - historial de incidencias cerradas
 - dashboard con estadisticas
 - mas tests unitarios e integracion

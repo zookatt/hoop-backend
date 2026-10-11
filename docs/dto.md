@@ -37,6 +37,24 @@ La respuesta es un JWT en texto plano:
 eyJhbGciOiJIUzUxMiJ9...
 ```
 
+Si el usuario debe cambiar la password antes del primer login, `/auth/token` responde `409 Conflict` y no devuelve JWT.
+
+Para cambiar la password inicial se usa:
+
+```text
+POST /api/v1/auth/change-password
+```
+
+Con body:
+
+```json
+{
+  "email": "katia@test.com",
+  "currentPassword": "123456",
+  "newPassword": "Katia1234"
+}
+```
+
 Ese token se usa despues con:
 
 ```text
@@ -205,7 +223,8 @@ Ejemplo de incidencia nueva sin asignar:
 | --- | --- | --- |
 | `CreateUserDTORequest` | Request | `name`, `email`, `password`, `roleId` |
 | `UpdateUserDTORequest` | Request | `name`, `email` |
-| `UserDTOResponse` | Response | `id`, `name`, `email`, `active`, `roleId`, `roleName` |
+| `ChangePasswordDTORequest` | Request | `email`, `currentPassword`, `newPassword` |
+| `UserDTOResponse` | Response | `id`, `name`, `email`, `active`, `roleId`, `roleName`, `mustChangePassword` |
 
 ### CreateUserDTORequest
 
@@ -230,6 +249,14 @@ user_characteristics
 
 La password se guarda cifrada y no se devuelve en la respuesta.
 
+Los usuarios creados por `ADMIN` nacen con:
+
+```text
+mustChangePassword = true
+```
+
+Esto obliga al trabajador a cambiar la password temporal antes de obtener un JWT.
+
 ### UpdateUserDTORequest
 
 Body previsto para modificar usuario:
@@ -243,6 +270,24 @@ Body previsto para modificar usuario:
 
 El endpoint de update de usuario esta pendiente.
 
+### ChangePasswordDTORequest
+
+Body para cambiar la password inicial:
+
+```json
+{
+  "email": "katia@test.com",
+  "currentPassword": "123456",
+  "newPassword": "Katia1234"
+}
+```
+
+El backend valida `currentPassword`, cifra `newPassword` y cambia:
+
+```text
+mustChangePassword = false
+```
+
 ### UserDTOResponse
 
 Datos que devuelve el backend:
@@ -254,6 +299,7 @@ email
 active
 roleId
 roleName
+mustChangePassword
 ```
 
 Ejemplo:
@@ -265,7 +311,8 @@ Ejemplo:
   "email": "katia@test.com",
   "active": true,
   "roleId": 1,
-  "roleName": "RECEPTION"
+  "roleName": "RECEPTION",
+  "mustChangePassword": true
 }
 ```
 
@@ -311,6 +358,7 @@ Ejemplo:
 ```text
 AUTH
 Basic Auth email/password      ->   JWT string
+ChangePasswordDTORequest       ->   200 OK
 
 INCIDENTS
 CreateIncidentDTORequest       ->   IncidentDTOResponse
@@ -321,6 +369,7 @@ UpdateIncidentStatusDTORequest ->   IncidentDTOResponse
 USERS
 CreateUserDTORequest           ->   UserDTOResponse
 UpdateUserDTORequest           ->   UserDTOResponse
+GET /users/{id}                ->   UserDTOResponse
 
 ROLES
 CreateUserRoleDTORequest       ->   UserRoleDTOResponse
