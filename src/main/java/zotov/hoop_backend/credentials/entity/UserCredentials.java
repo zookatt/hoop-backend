@@ -17,6 +17,9 @@ public class UserCredentials {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private Boolean mustChangePassword = true;
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
@@ -28,6 +31,7 @@ public class UserCredentials {
         this.email = email;
         this.password = password;
         this.user = user;
+        this.mustChangePassword = true;
     }
 
     public Integer getId() {
@@ -56,5 +60,13 @@ public class UserCredentials {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Boolean getMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public void setMustChangePassword(Boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
     }
 }
