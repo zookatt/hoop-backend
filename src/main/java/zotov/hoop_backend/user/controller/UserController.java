@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
+
 import zotov.hoop_backend.user.dto.CreateUserDTORequest;
 import zotov.hoop_backend.user.dto.UserDTOResponse;
 import zotov.hoop_backend.user.service.UserService;
@@ -28,6 +30,15 @@ public class UserController {
     @GetMapping
     public List<UserDTOResponse> findAll() {
         return userService.findAllResponses();
+    }
+
+    @GetMapping("/{id}")
+    public UserDTOResponse findById(@PathVariable Integer id) {
+        try {
+            return userService.findResponseById(id);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage(), exception);
+        }
     }
 
     @PostMapping

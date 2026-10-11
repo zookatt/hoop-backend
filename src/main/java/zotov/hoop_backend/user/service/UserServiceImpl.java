@@ -53,6 +53,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDTOResponse findResponseById(Integer id) {
+        return userRepository.findById(id)
+                .map(this::toResponse)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id " + id));
+    }
+
+    @Override
     public Optional<User> findById(Integer id) {
         return userRepository.findById(id);
     }

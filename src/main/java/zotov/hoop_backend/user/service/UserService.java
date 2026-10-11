@@ -13,6 +13,8 @@ public interface UserService {
 
     List<UserDTOResponse> findAllResponses();
 
+    UserDTOResponse findResponseById(Integer id);
+
     Optional<User> findById(Integer id);
 
     Optional<User> findByEmail(String email);
