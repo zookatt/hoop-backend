@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -97,8 +96,9 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.PUT, apiEndpoint + "/incidents/*")
                     .hasAnyAuthority("SCOPE_ADMIN", "SCOPE_RECEPTION")
                     .requestMatchers(HttpMethod.PUT, apiEndpoint + "/incidents/*/status")
-                    .hasAnyAuthority("SCOPE_ADMIN", "SCOPE_RECEPTION", "SCOPE_MAINTENANCE", "SCOPE_CLEANING");
-
+                    .hasAnyAuthority("SCOPE_ADMIN", "SCOPE_RECEPTION", "SCOPE_MAINTENANCE", "SCOPE_CLEANING")
+                    .requestMatchers(HttpMethod.POST, apiEndpoint + "/auth/change-password")
+                    .permitAll();
             auth.anyRequest().authenticated();
         });
 
