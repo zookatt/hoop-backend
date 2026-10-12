@@ -18,6 +18,8 @@ import zotov.hoop_backend.incident.dto.UpdateIncidentDTORequest;
 import zotov.hoop_backend.incident.dto.UpdateIncidentStatusDTORequest;
 import zotov.hoop_backend.incident.entity.Incident;
 import zotov.hoop_backend.incident.enums.IncidentStatus;
+import zotov.hoop_backend.characteristics.entity.UserCharacteristics;
+import zotov.hoop_backend.characteristics.service.UserCharacteristicsService;
 import zotov.hoop_backend.user.entity.User;
 import zotov.hoop_backend.incident.service.IncidentService;
 import zotov.hoop_backend.user.service.UserService;
@@ -33,10 +35,15 @@ public class IncidentController {
 
     private final IncidentService incidentService;
     private final UserService userService;
+    private final UserCharacteristicsService userCharacteristicsService;
 
-    public IncidentController(IncidentService incidentService, UserService userService) {
+    public IncidentController(
+            IncidentService incidentService,
+            UserService userService,
+            UserCharacteristicsService userCharacteristicsService) {
         this.incidentService = incidentService;
         this.userService = userService;
+        this.userCharacteristicsService = userCharacteristicsService;
     }
 
     @GetMapping
@@ -44,7 +51,7 @@ public class IncidentController {
         return incidentService.findAll()
                 .stream()
                 .filter(incident -> canViewIncident(authentication, incident))
-                .map(IncidentController::toResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -261,7 +268,7 @@ public class IncidentController {
                 .anyMatch(authority -> authority.getAuthority().equals(authorityName));
     }
 
-    private static IncidentDTOResponse toResponse(Incident incident) {
+    private IncidentDTOResponse toResponse(Incident incident) {
         return new IncidentDTOResponse(
                 incident.getId(),
                 incident.getTitle(),
@@ -271,7 +278,11 @@ public class IncidentController {
                 incident.getPriority(),
                 incident.getStatus(),
                 getUserId(incident.getCreatedBy()),
+                getUserName(incident.getCreatedBy()),
+                getUserRoleName(incident.getCreatedBy()),
                 getUserId(incident.getAssignedTo()),
+                getUserName(incident.getAssignedTo()),
+                getUserRoleName(incident.getAssignedTo()),
                 incident.getCreatedAt(),
                 incident.getUpdatedAt());
     }
@@ -281,5 +292,23 @@ public class IncidentController {
             return null;
         }
         return user.getId();
+    }
+
+    private String getUserName(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        return userCharacteristicsService.findByUserId(user.getId())
+                .map(UserCharacteristics::getName)
+                .orElse(null);
+    }
+
+    private static String getUserRoleName(User user) {
+        if (user == null || user.getRole() == null) {
+            return null;
+        }
+
+        return user.getRole().getName();
     }
 }

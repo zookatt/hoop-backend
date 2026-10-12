@@ -15,7 +15,11 @@ public record IncidentDTOResponse(
                 Priority priority,
                 IncidentStatus status,
                 Integer createdByUserId,
+                String createdByUserName,
+                String createdByUserRoleName,
                 Integer assignedToUserId,
+                String assignedToUserName,
+                String assignedToUserRoleName,
                 LocalDateTime createdAt,
                 LocalDateTime updatedAt) {
 }
