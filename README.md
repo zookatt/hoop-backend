@@ -149,20 +149,15 @@ Ver detalle en [docs/endpoints.md](docs/endpoints.md).
 
 ## Documentacion tecnica
 
-- [Configuracion y ejecucion](docs/setup_instructions.md)
-- [Endpoints](docs/endpoints.md)
-- [DTOs](docs/dto.md)
-- [Modelo de base de datos](docs/database_model.md)
-- [Estado del PMV](docs/project_status.md)
+- [HOOP- Wiki](https://github.com/zookatt/hoop-backend/wiki)
 
 ## Swagger
 
 Con la aplicacion arrancada:
 
-```text
-http://localhost:8080/swagger-ui.html
-http://localhost:8080/api-docs
-```
+- [HOOP-SWAGGER](http://localhost:8080/swagger-ui.html) 
+
+- [HOOP-JSON](http://localhost:8080/api-docs)
 
 ## Diagramas
 
@@ -203,5 +198,4 @@ Pendiente o mejora futura:
 - historial de incidencias cerradas
 - dashboard con estadisticas
 - validacion backend de que el trabajador asignado pertenece al departamento seleccionado
-- mas tests unitarios e integracion
 - documentacion final de presentacion
