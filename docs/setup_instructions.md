@@ -119,7 +119,7 @@ Recomendado:
   "mainClass": "zotov.hoop_backend.HoopBackendApplication",
   "projectName": "hoop-backend",
   "cwd": "C:\\Users\\zotov\\Development\\FactoriaF5\\fullstack-personal\\hoop-backend",
-  "vmArgs": "-Dspring.profiles.active=local",
+  "vmArgs": "-Dspring.profiles.active=local -Dspring.docker.compose.lifecycle-management=start-only",
   "env": {
     "DB_URL": "jdbc:mysql://localhost:3306/hoop",
     "DB_USERNAME": "hoop_user",
@@ -173,9 +173,13 @@ JOIN user_role ur ON ur.id = u.role_id;
 
 ## 9. Detener MySQL
 
+En caso de que salga algun error, ejecutar:
+
 ```powershell
 docker compose down
 ```
+
+Y volver a ejecutar Run java dentro del archivo ejecuta HoopBackendApplication.
 
 Los datos almacenados en el volumen de MySQL se conservan.
 
