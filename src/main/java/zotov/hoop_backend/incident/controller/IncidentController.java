@@ -97,6 +97,8 @@ public class IncidentController {
                     "Only ADMIN or RECEPTION can edit incidents");
         }
 
+        validateIncidentIsNotClosed(incident);
+
         if (request.title() != null) {
             incident.setTitle(request.title());
         }
@@ -158,6 +160,12 @@ public class IncidentController {
                     "You cannot change this incident status");
         }
 
+        if (incident.getStatus() == IncidentStatus.CLOSED) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Closed incidents cannot be reopened or edited");
+        }
+
         try {
             Incident updatedIncident = switch (request.status()) {
                 case OPEN -> incident;
@@ -177,6 +185,14 @@ public class IncidentController {
             return incidentService.closeWithoutAssignment(incident);
         }
         return incidentService.close(incident);
+    }
+
+    private void validateIncidentIsNotClosed(Incident incident) {
+        if (incident.getStatus() == IncidentStatus.CLOSED) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Closed incidents cannot be edited");
+        }
     }
 
     private Incident findIncidentOrFail(Integer id) {

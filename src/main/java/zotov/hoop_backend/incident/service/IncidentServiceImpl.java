@@ -38,6 +38,7 @@ public class IncidentServiceImpl implements IncidentService {
 
     @Override
     public Incident setPriority(Incident incident, Priority priority) {
+        validateIncidentIsNotClosed(incident);
         incident.setPriority(priority);
         incident.setUpdatedAt(LocalDateTime.now());
         return incidentRepository.save(incident);
@@ -45,6 +46,7 @@ public class IncidentServiceImpl implements IncidentService {
 
     @Override
     public Incident setDepartment(Incident incident, Department department) {
+        validateIncidentIsNotClosed(incident);
         incident.setDepartment(department);
         incident.setUpdatedAt(LocalDateTime.now());
         return incidentRepository.save(incident);
@@ -52,6 +54,7 @@ public class IncidentServiceImpl implements IncidentService {
 
     @Override
     public Incident assignTo(Incident incident, User user) {
+        validateIncidentIsNotClosed(incident);
         if (incident.getDepartment() == null) {
             throw new IllegalStateException("The incident must have a department before assignment");
         }
@@ -106,5 +109,11 @@ public class IncidentServiceImpl implements IncidentService {
         incident.setStatus(IncidentStatus.CLOSED);
         incident.setUpdatedAt(LocalDateTime.now());
         return incidentRepository.save(incident);
+    }
+
+    private void validateIncidentIsNotClosed(Incident incident) {
+        if (incident.getStatus() == IncidentStatus.CLOSED) {
+            throw new IllegalStateException("Closed incidents cannot be edited");
+        }
     }
 }
