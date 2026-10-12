@@ -1,0 +1,389 @@
+# DTOs - HOOP Backend
+
+Este documento resume que datos entran y salen de la API.
+
+Los DTOs evitan exponer directamente las entidades de la base de datos:
+
+```text
+Frontend/Postman
+   |
+   | DTO Request
+   v
+Backend
+   |
+   | DTO Response
+   v
+Frontend/Postman
+```
+
+## Auth
+
+El endpoint actual de autenticacion es:
+
+```text
+POST /api/v1/auth/token
+```
+
+No usa DTO JSON. Usa **Basic Auth** con:
+
+```text
+email
+password
+```
+
+La respuesta es un JWT en texto plano:
+
+```text
+eyJhbGciOiJIUzUxMiJ9...
+```
+
+Si el usuario debe cambiar la password antes del primer login, `/auth/token` responde `409 Conflict` y no devuelve JWT.
+
+Para cambiar la password inicial se usa:
+
+```text
+POST /api/v1/auth/change-password
+```
+
+Con body:
+
+```json
+{
+  "email": "katia@test.com",
+  "currentPassword": "123456",
+  "newPassword": "Katia1234"
+}
+```
+
+Ese token se usa despues con:
+
+```text
+Authorization: Bearer <token>
+```
+
+Los records `LoginDTORequest` y `LoginDTOResponse` existen en el proyecto, pero no forman parte del flujo activo actual.
+
+## Incident DTOs
+
+| DTO | Tipo | Datos |
+| --- | --- | --- |
+| `CreateIncidentDTORequest` | Request | `title`, `description`, `roomNumber` |
+| `UpdateIncidentDTORequest` | Request | `title`, `description`, `roomNumber` |
+| `AssignIncidentDTORequest` | Request | `department`, `priority`, `assignedToUserId` |
+| `UpdateIncidentStatusDTORequest` | Request | `status` |
+| `IncidentDTOResponse` | Response | datos completos de la incidencia |
+
+### CreateIncidentDTORequest
+
+Body para crear una incidencia:
+
+```json
+{
+  "title": "Aire acondicionado roto",
+  "description": "El aire no enfria en la habitacion",
+  "roomNumber": "203"
+}
+```
+
+El backend establece automaticamente:
+
+```text
+status = OPEN
+createdBy = usuario logueado
+createdAt
+updatedAt
+```
+
+No se envia `createdByUserId` en la URL ni en el body.
+
+### UpdateIncidentDTORequest
+
+Body para modificar datos basicos:
+
+```json
+{
+  "title": "Aire acondicionado no funciona",
+  "description": "El cliente dice que sale aire caliente",
+  "roomNumber": "203"
+}
+```
+
+Se pueden enviar solo los campos que se quieran cambiar.
+
+### AssignIncidentDTORequest
+
+Body para valorar y asignar una incidencia:
+
+```json
+{
+  "department": "MAINTENANCE",
+  "priority": "HIGH",
+  "assignedToUserId": 2
+}
+```
+
+Valores posibles de `department`:
+
+```text
+MAINTENANCE
+CLEANING
+```
+
+Valores posibles de `priority`:
+
+```text
+LOW
+MEDIUM
+HIGH
+```
+
+### UpdateIncidentStatusDTORequest
+
+Body para cambiar estado:
+
+```json
+{
+  "status": "IN_PROGRESS"
+}
+```
+
+Estados posibles:
+
+```text
+OPEN
+IN_PROGRESS
+RESOLVED
+CLOSED
+```
+
+### IncidentDTOResponse
+
+Datos que devuelve el backend:
+
+```text
+id
+title
+description
+roomNumber
+department
+priority
+status
+createdByUserId
+createdByUserName
+createdByUserRoleName
+assignedToUserId
+assignedToUserName
+assignedToUserRoleName
+createdAt
+updatedAt
+```
+
+Notas:
+
+- `department`, `priority` y los datos de `assignedTo` pueden ser `null` cuando la incidencia esta creada pero todavia no ha sido valorada o asignada.
+- En frontend, las incidencias sin departamento/asignacion se muestran como `Sin asignar`.
+- En frontend, los enums se traducen a castellano. Por ejemplo, `LOW` se muestra como `Baja` y `MAINTENANCE` como `Mantenimiento`.
+- El endpoint `GET /api/v1/incidents` devuelve las incidencias ordenadas por `createdAt` descendente.
+- La visibilidad de incidencias depende del rol del usuario autenticado.
+
+Ejemplo:
+
+```json
+{
+  "id": 1,
+  "title": "Aire acondicionado roto",
+  "description": "El aire no enfria en la habitacion",
+  "roomNumber": "203",
+  "department": "MAINTENANCE",
+  "priority": "HIGH",
+  "status": "OPEN",
+  "createdByUserId": 1,
+  "createdByUserName": "Katia",
+  "createdByUserRoleName": "RECEPTION",
+  "assignedToUserId": 2,
+  "assignedToUserName": "Carlos",
+  "assignedToUserRoleName": "MAINTENANCE",
+  "createdAt": "2026-10-08T10:00:00",
+  "updatedAt": "2026-10-08T10:00:00"
+}
+```
+
+Ejemplo de incidencia nueva sin asignar:
+
+```json
+{
+  "id": 2,
+  "title": "Mancha en sofa",
+  "description": "El sofa necesita revision",
+  "roomNumber": "204",
+  "department": null,
+  "priority": null,
+  "status": "OPEN",
+  "createdByUserId": 1,
+  "createdByUserName": "Katia",
+  "createdByUserRoleName": "RECEPTION",
+  "assignedToUserId": null,
+  "assignedToUserName": null,
+  "assignedToUserRoleName": null,
+  "createdAt": "2026-10-08T10:15:00",
+  "updatedAt": "2026-10-08T10:15:00"
+}
+```
+
+## User DTOs
+
+| DTO | Tipo | Datos |
+| --- | --- | --- |
+| `CreateUserDTORequest` | Request | `name`, `email`, `password`, `roleId` |
+| `UpdateUserDTORequest` | Request | `name`, `email` |
+| `ChangePasswordDTORequest` | Request | `email`, `currentPassword`, `newPassword` |
+| `UserDTOResponse` | Response | `id`, `name`, `email`, `active`, `roleId`, `roleName`, `mustChangePassword` |
+
+### CreateUserDTORequest
+
+Body para crear usuario:
+
+```json
+{
+  "name": "Katia",
+  "email": "katia@test.com",
+  "password": "123456",
+  "roleId": 1
+}
+```
+
+Con este request, el backend crea datos en:
+
+```text
+users
+user_credentials
+user_characteristics
+```
+
+La password se guarda cifrada y no se devuelve en la respuesta.
+
+Los usuarios creados por `ADMIN` nacen con:
+
+```text
+mustChangePassword = true
+```
+
+Esto obliga al trabajador a cambiar la password temporal antes de obtener un JWT.
+
+### UpdateUserDTORequest
+
+Body previsto para modificar usuario:
+
+```json
+{
+  "name": "Katia Ivanova",
+  "email": "katia.ivanova@test.com"
+}
+```
+
+El endpoint de update de usuario esta pendiente.
+
+### ChangePasswordDTORequest
+
+Body para cambiar la password inicial:
+
+```json
+{
+  "email": "katia@test.com",
+  "currentPassword": "123456",
+  "newPassword": "Katia1234"
+}
+```
+
+El backend valida `currentPassword`, cifra `newPassword` y cambia:
+
+```text
+mustChangePassword = false
+```
+
+### UserDTOResponse
+
+Datos que devuelve el backend:
+
+```text
+id
+name
+email
+active
+roleId
+roleName
+mustChangePassword
+```
+
+Ejemplo:
+
+```json
+{
+  "id": 1,
+  "name": "Katia",
+  "email": "katia@test.com",
+  "active": true,
+  "roleId": 1,
+  "roleName": "RECEPTION",
+  "mustChangePassword": true
+}
+```
+
+## User Role DTOs
+
+| DTO | Tipo | Datos |
+| --- | --- | --- |
+| `CreateUserRoleDTORequest` | Request | `name` |
+| `UserRoleDTOResponse` | Response | `id`, `name` |
+
+### CreateUserRoleDTORequest
+
+Body:
+
+```json
+{
+  "name": "RECEPTION"
+}
+```
+
+Roles previstos:
+
+```text
+ADMIN
+RECEPTION
+MAINTENANCE
+CLEANING
+```
+
+### UserRoleDTOResponse
+
+Ejemplo:
+
+```json
+{
+  "id": 1,
+  "name": "RECEPTION"
+}
+```
+
+## Resumen
+
+```text
+AUTH
+Basic Auth email/password      ->   JWT string
+ChangePasswordDTORequest       ->   200 OK
+
+INCIDENTS
+CreateIncidentDTORequest       ->   IncidentDTOResponse
+UpdateIncidentDTORequest       ->   IncidentDTOResponse
+AssignIncidentDTORequest       ->   IncidentDTOResponse
+UpdateIncidentStatusDTORequest ->   IncidentDTOResponse
+
+USERS
+CreateUserDTORequest           ->   UserDTOResponse
+UpdateUserDTORequest           ->   UserDTOResponse
+GET /users/{id}                ->   UserDTOResponse
+
+ROLES
+CreateUserRoleDTORequest       ->   UserRoleDTOResponse
+```
