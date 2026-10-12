@@ -89,8 +89,8 @@ Authorization: Bearer <token>
 | Incidencias | PUT | `/incidents/{id}` | `ADMIN`, `RECEPTION` | Modifica titulo, descripcion o habitacion | `200 OK` |
 | Incidencias | PUT | `/incidents/{id}/assignment` | `ADMIN`, `RECEPTION` | Asigna departamento, prioridad y trabajador | `200 OK` |
 | Incidencias | PUT | `/incidents/{id}/status` | `ADMIN`, `RECEPTION`, `MAINTENANCE`, `CLEANING` | Cambia el estado de una incidencia | `200 OK` |
-| Usuarios | GET | `/users` | `ADMIN` | Consulta los usuarios creados | `200 OK` |
-| Usuarios | GET | `/users/{id}` | `ADMIN` | Consulta un usuario concreto | `200 OK` |
+| Usuarios | GET | `/users` | `ADMIN`, `RECEPTION` | Consulta los usuarios creados. Recepcion lo usa para asignar trabajadores a incidencias | `200 OK` |
+| Usuarios | GET | `/users/{id}` | `ADMIN`, `RECEPTION` | Consulta un usuario concreto | `200 OK` |
 | Usuarios | POST | `/users` | `ADMIN` | Crea un usuario interno | `201 Created` |
 | Roles | GET | `/user-roles` | `ADMIN` | Consulta roles creados | `200 OK` |
 | Roles | POST | `/user-roles` | `ADMIN` | Crea un rol | `201 Created` |
@@ -145,6 +145,8 @@ Reglas actuales:
 - Una incidencia `OPEN` sin asignar puede cerrarse directamente.
 - `ADMIN` y `RECEPTION` pueden ver todas las incidencias.
 - `ADMIN` y `RECEPTION` pueden editar datos basicos, asignar y cerrar incidencias.
+- Una incidencia `CLOSED` no se puede editar, reasignar ni reabrir.
+- Si se intenta modificar una incidencia ya cerrada, el backend responde `409 Conflict`.
 - `MAINTENANCE` solo puede ver incidencias del departamento `MAINTENANCE`.
 - `CLEANING` solo puede ver incidencias del departamento `CLEANING`.
 - `MAINTENANCE` y `CLEANING` no pueden editar datos basicos ni asignar incidencias.
@@ -311,7 +313,11 @@ Respuesta esperada:
   "priority": null,
   "status": "OPEN",
   "createdByUserId": 1,
+  "createdByUserName": "Katia",
+  "createdByUserRoleName": "RECEPTION",
   "assignedToUserId": null,
+  "assignedToUserName": null,
+  "assignedToUserRoleName": null,
   "createdAt": "...",
   "updatedAt": "..."
 }
@@ -361,6 +367,15 @@ Body:
 }
 ```
 
+Decision de PMV:
+
+- el backend recibe `assignedToUserId`
+- el frontend muestra un desplegable de trabajadores
+- si el departamento es `MAINTENANCE`, solo muestra usuarios con rol `MAINTENANCE`
+- si el departamento es `CLEANING`, solo muestra usuarios con rol `CLEANING`
+
+La validacion principal de permisos sigue estando en backend: solo `ADMIN` y `RECEPTION` pueden usar este endpoint.
+
 ### 8. Cambiar estado
 
 Permisos:
@@ -406,6 +421,8 @@ PUT http://localhost:8080/api/v1/incidents/1/status
   "status": "CLOSED"
 }
 ```
+
+Antes de cerrar, el frontend muestra una confirmacion visual porque las incidencias cerradas no se pueden volver a editar ni reabrir.
 
 ## Errores comunes
 

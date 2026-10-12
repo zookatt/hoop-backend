@@ -32,6 +32,7 @@ El producto minimo viable actual se centra en:
 - control de permisos por rol
 - filtrado de incidencias por rol
 - orden de incidencias nuevas primero
+- bloqueo de edicion sobre incidencias cerradas
 
 No existe registro publico. Los usuarios de la aplicacion son trabajadores internos y deben ser creados por un usuario con rol `ADMIN`.
 
@@ -152,6 +153,7 @@ Ver detalle en [docs/endpoints.md](docs/endpoints.md).
 - [Endpoints](docs/endpoints.md)
 - [DTOs](docs/dto.md)
 - [Modelo de base de datos](docs/database_model.md)
+- [Estado del PMV](docs/project_status.md)
 
 ## Swagger
 
@@ -190,6 +192,8 @@ Implementado hasta ahora:
 - reglas de negocio para estados de incidencias
 - filtrado de consulta de incidencias segun rol
 - listado de incidencias ordenado por fecha de creacion descendente
+- bloqueo de incidencias cerradas
+- respuesta de incidencia con datos de usuario creador y asignado
 
 Pendiente o mejora futura:
 
@@ -198,5 +202,6 @@ Pendiente o mejora futura:
 - desactivar usuarios
 - historial de incidencias cerradas
 - dashboard con estadisticas
+- validacion backend de que el trabajador asignado pertenece al departamento seleccionado
 - mas tests unitarios e integracion
 - documentacion final de presentacion

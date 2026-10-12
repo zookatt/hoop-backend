@@ -169,15 +169,20 @@ department
 priority
 status
 createdByUserId
+createdByUserName
+createdByUserRoleName
 assignedToUserId
+assignedToUserName
+assignedToUserRoleName
 createdAt
 updatedAt
 ```
 
 Notas:
 
-- `department`, `priority` y `assignedToUserId` pueden ser `null` cuando la incidencia esta creada pero todavia no ha sido valorada o asignada.
+- `department`, `priority` y los datos de `assignedTo` pueden ser `null` cuando la incidencia esta creada pero todavia no ha sido valorada o asignada.
 - En frontend, las incidencias sin departamento/asignacion se muestran como `Sin asignar`.
+- En frontend, los enums se traducen a castellano. Por ejemplo, `LOW` se muestra como `Baja` y `MAINTENANCE` como `Mantenimiento`.
 - El endpoint `GET /api/v1/incidents` devuelve las incidencias ordenadas por `createdAt` descendente.
 - La visibilidad de incidencias depende del rol del usuario autenticado.
 
@@ -193,7 +198,11 @@ Ejemplo:
   "priority": "HIGH",
   "status": "OPEN",
   "createdByUserId": 1,
+  "createdByUserName": "Katia",
+  "createdByUserRoleName": "RECEPTION",
   "assignedToUserId": 2,
+  "assignedToUserName": "Carlos",
+  "assignedToUserRoleName": "MAINTENANCE",
   "createdAt": "2026-10-08T10:00:00",
   "updatedAt": "2026-10-08T10:00:00"
 }
@@ -211,7 +220,11 @@ Ejemplo de incidencia nueva sin asignar:
   "priority": null,
   "status": "OPEN",
   "createdByUserId": 1,
+  "createdByUserName": "Katia",
+  "createdByUserRoleName": "RECEPTION",
   "assignedToUserId": null,
+  "assignedToUserName": null,
+  "assignedToUserRoleName": null,
   "createdAt": "2026-10-08T10:15:00",
   "updatedAt": "2026-10-08T10:15:00"
 }
