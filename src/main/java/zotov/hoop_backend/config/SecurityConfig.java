@@ -83,6 +83,8 @@ public class SecurityConfig {
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs",
                             "/api-docs/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, apiEndpoint + "/users", apiEndpoint + "/users/**")
+                    .hasAnyAuthority("SCOPE_ADMIN", "SCOPE_RECEPTION")
                     .requestMatchers(apiEndpoint + "/users", apiEndpoint + "/users/**")
                     .hasAuthority("SCOPE_ADMIN")
                     .requestMatchers(apiEndpoint + "/user-roles", apiEndpoint + "/user-roles/**")
