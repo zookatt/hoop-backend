@@ -64,9 +64,67 @@ Este documento resume las decisiones tecnicas tomadas y el estado real del backe
 - Invalidacion real de JWT en servidor.
 - Historial avanzado de incidencias cerradas.
 - Endpoint separado `/incidents/closed`.
-- Dashboard con estadisticas.
-- Validar en backend que el trabajador asignado pertenece al departamento elegido.
-- Tests unitarios e integracion completos para seguridad, usuarios e incidencias.
+- Dashboard con estadisticas
+
+
+## Tests y cobertura
+
+Estado actual:
+
+- Tests unitarios de reglas de negocio de incidencias.
+- Tests unitarios de usuarios:
+  - creacion de usuario interno
+  - email duplicado
+  - rol inexistente
+- Tests unitarios de autenticacion:
+  - cambio de password inicial
+  - carga de usuarios desde base de datos para Spring Security
+  - bloqueo de token si `mustChangePassword = true`
+- Tests de controladores:
+  - auth
+  - usuarios
+  - roles
+  - incidencias
+- Tests de integracion con Spring Boot, MockMvc, Security, JPA y base de datos H2 en memoria:
+  - arranque del contexto de aplicacion
+  - login con Basic Auth y generacion de token
+  - cambio obligatorio de password inicial
+  - creacion de incidencia usando el usuario autenticado
+  - filtrado de incidencias por rol/departamento
+  - cierre de incidencias segun permisos
+  - bloqueo de edicion sobre incidencias cerradas
+
+Comando de verificacion:
+
+```bash
+mvn test
+```
+
+El reporte de cobertura se genera en:
+
+```text
+target/site/jacoco/index.html
+```
+
+Resultado verificado:
+
+```text
+Tests run: 50, Failures: 0, Errors: 0, Skipped: 0
+Cobertura JaCoCo de instrucciones: 81.3%
+```
+
+## Cobertura de los tests
+
+![Cobertura de los tests](tests-backend.png)
+
+Para la cobertura se excluyen clases sin logica de negocio directa:
+
+- aplicacion principal
+- configuracion
+- DTOs
+- entidades
+- enums
+- repositorios
 
 ## Endpoints principales
 
